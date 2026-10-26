@@ -1,1 +1,7 @@
-{ "cleanUrls": true, "redirects": [ {"source":"/edit","destination":"/admin","permanent":false} ] }
+{
+  "cleanUrls": true,
+  "redirects": [ {"source":"/edit","destination":"/admin","permanent":false} ],
+  "headers": [
+    { "source": "/(site.js|site.css|config.js)", "headers": [ {"key":"Cache-Control","value":"no-cache, must-revalidate"} ] }
+  ]
+}
