@@ -14,7 +14,13 @@ function toast(t){var d=document.createElement('div');d.className='toast';d.text
 function mark(fg,notch){return '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="epg" gradientUnits="userSpaceOnUse" x1="222" y1="0" x2="290" y2="0"><stop offset="0" stop-color="#ff4f9a"/><stop offset=".5" stop-color="#8a5cff"/><stop offset="1" stop-color="#3d8bff"/></linearGradient></defs><path d="M92 262H420V196A76 76 0 0 0 344 120H168A76 76 0 0 0 92 196V316A76 76 0 0 0 168 392H392" fill="none" stroke="'+fg+'" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/><path d="M222 172H290" stroke="'+(notch||fg)+'" stroke-width="18" stroke-linecap="round"/></svg>'}
 function logoMk(){return S().logo?'<img alt="" src="'+S().logo+'">':mark('currentColor','url(#epg)')}
 function box(){return '<span class="ph-phone"><span class="scr"></span><span class="isl"></span></span>'}
-function pic(p){return p.photo?'<img alt="'+esc(p.name+' '+p.spec)+'" src="'+p.photo+'">':box()}
+var PROC={};
+function pic(p){if(!p.photo)return box();var u=PROC[p.photo];return '<img alt="'+esc(p.name+' '+p.spec)+'" src="'+(u||p.photo)+'"'+(u?'':' data-proc="'+esc(p.photo)+'"')+'>'}
+function processImgs(){[].forEach.call(document.querySelectorAll('img[data-proc]'),function(im){var src=im.getAttribute('data-proc');im.removeAttribute('data-proc');
+ var job=PROC['~'+src]||(PROC['~'+src]=fetch(src).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(b){return createImageBitmap(b)}).then(function(bm){
+  var c=document.createElement('canvas'),sc=Math.min(1,1400/Math.max(bm.width,bm.height));c.width=Math.round(bm.width*sc);c.height=Math.round(bm.height*sc);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+  var o=trim(cutout(c));return new Promise(function(res){o.toBlob(function(bl){res(PROC[src]=URL.createObjectURL(bl))},'image/png')})}).catch(function(){return null}));
+ job.then(function(u){if(u)document.querySelectorAll('img').forEach(function(x){if(x.getAttribute('src')===src)x.src=u})})})}
 function msgrUrl(text){var m=(S().messenger||'').trim();if(!m)return (S().fb||'').trim();var base=/^https?:\/\//.test(m)?m:'https://m.me/'+m.replace(/^@/,'').replace(/^(www\.)?(facebook\.com|m\.me)\//,'');return base+(base.indexOf('?')<0?'?':'&')+'text='+encodeURIComponent(text)}
 function mapsUrl(){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(S().mapsQuery||S().address)}
 function wazeUrl(){return 'https://waze.com/ul?q='+encodeURIComponent(S().mapsQuery||S().address)}
@@ -49,7 +55,7 @@ function render(){
  h+='<footer><div class="wrap"><a class="logo" href="#top"><span class="mk">'+logoMk()+'</span><span class="wm">'+esc(s.shopName)+'</span></a><span class="lbl">Since 2014 · All units brand new & sealed</span></div></footer>';
  if(!editing)h+='<button class="btn fab" data-msg="1">Order on Messenger</button>';
  app.innerHTML=h;
- setupRail();setupParallax();
+ setupRail();setupParallax();processImgs();
 }
 function card(p){var sold=p.status==='soldout',pr=peso(p.price);
  return '<article class="pc'+(sold?' sold':'')+'"><div class="ph">'+pic(p)+(p.sample?'<span class="sample">SAMPLE</span>':'')+'</div><div class="sh"></div><div class="bd"><div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+'</div>'+
