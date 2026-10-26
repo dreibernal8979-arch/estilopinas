@@ -28,6 +28,22 @@ function featured(){var f=state.products.filter(function(p){return p.featured});
 var SPOTS=[{x:'30%',y:'8%',w:'40%',d:22,z:3,r:'-2deg'},{x:'2%',y:'30%',w:'30%',d:12,z:2,r:'3deg'},{x:'66%',y:'30%',w:'30%',d:14,z:2,r:'-3deg'},{x:'20%',y:'60%',w:'22%',d:6,z:1,r:'2deg'},{x:'58%',y:'64%',w:'20%',d:5,z:1,r:'-2deg'}];
 function stage(items,cls){return '<div class="stage'+(cls?' '+cls:'')+'" aria-hidden="true">'+items.slice(0,SPOTS.length).map(function(p,i){var s=SPOTS[i];return '<div class="fl" style="--x:'+s.x+';--y:'+s.y+';--w:'+s.w+';--d:'+s.d+';--z:'+s.z+';--r:'+s.r+';--i:'+i+'"><div class="obj">'+pic(p)+'</div><div class="sh"></div></div>'}).join('')+'</div>'}
 
+function sealSvg(){return '<svg viewBox="0 0 200 200"><defs><path id="sealp" d="M100 100m-72 0a72 72 0 1 1 144 0a72 72 0 1 1-144 0"/></defs><circle cx="100" cy="100" r="98" fill="#0e0f11"/><text fill="#f4f4f2" style="font:700 14.5px Archivo,sans-serif;letter-spacing:3.2px"><textPath href="#sealp">BRAND NEW · SEALED · SINCE 2014 · </textPath></text><g transform="translate(64 64) scale(.14)">'+mark('#f4f4f2','url(#epg)').replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'')+'</g></svg>'}
+function brandStory(){return '<section class="sec story brandmesh" id="story"><div class="wrap story-in"><div class="story-tx"><p class="lbl">The Estilo Pinas mark</p><h2 class="disp">A phone that writes an “e”.</h2>'+
+ '<p>Our logo joins three things we stand for: the <b>phone</b> you came for, the <b>notch</b> that turns it into an “e”, and the <b>sealed box</b> every unit leaves in. It leans forward because we move fast: same-day COD, meet-ups and LBC nationwide.</p>'+
+ '<div class="parts"><div><span class="pt pt-phone"></span><span class="lbl">Phone</span></div><div><span class="pt pt-notch"></span><span class="lbl">Notch</span></div><div><span class="pt pt-box"></span><span class="lbl">Sealed box</span></div></div></div>'+
+ '<div class="story-logo"><canvas class="badge" data-badge="black" aria-label="Estilo Pinas logo" role="img"></canvas></div></div></section>'}
+function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+var BADGE={black:{body:'#0e0f11',side:'#2a2b30',screen:'#f4f4f2',text:'#0e0f11'},white:{body:'#f4f4f2',side:'#b9bac0',screen:'#0e0f11',text:'#f4f4f2'}};
+function drawBadge(cv,v){var W=1220,H=520,R=140,s=40,dx=30,dy=40,cw=1500,ch=760;cv.width=cw;cv.height=ch;var x=cv.getContext('2d');x.clearRect(0,0,cw,ch);x.save();x.translate(cw/2+10,ch/2-10);x.rotate(-8*Math.PI/180);
+ for(var i=dy;i>0;i-=2){x.save();x.translate(-dx*i/dy,i);rr(x,-W/2,-H/2,W,H,R);x.fillStyle=v.side;x.fill();x.restore()}
+ rr(x,-W/2,-H/2,W,H,R);x.fillStyle=v.body;x.fill();rr(x,-W/2+s,-H/2+s,W-2*s,H-2*s,R-s);x.fillStyle=v.screen;x.fill();
+ var g=x.createLinearGradient(-120,0,120,0);g.addColorStop(0,'#ff3d8b');g.addColorStop(.5,'#8a5cff');g.addColorStop(1,'#3d8bff');rr(x,-120,-H/2+s+26,240,30,15);x.fillStyle=g;x.fill();
+ x.fillStyle=v.text;x.textAlign='center';var fs=300;x.font=fs+'px "Anton", sans-serif';var tw=x.measureText('ESTILO PINAS').width;fs=Math.floor(fs*Math.min(1,(W-2*s-110)/tw));x.font=fs+'px "Anton", sans-serif';x.fillText('ESTILO PINAS',0,fs*.34+4);
+ x.font='600 34px "Archivo", sans-serif';try{x.letterSpacing='14px'}catch(e){}x.globalAlpha=.6;x.fillText('GADGETS · SINCE 2014',0,H/2-s-34);x.globalAlpha=1;try{x.letterSpacing='0px'}catch(e){}
+ x.font='700 38px "Archivo", sans-serif';x.fillText('™',W/2+20,-H/2+10);x.restore()}
+var fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('100px "Anton"'),document.fonts.load('600 30px "Archivo"')]).catch(function(){}):Promise.resolve();
+function drawBadges(){fontsReady.then(function(){document.querySelectorAll('canvas.badge').forEach(function(cv){drawBadge(cv,BADGE[cv.getAttribute('data-badge')]||BADGE.black)})})}
 function render(){
  stopRail();
  var s=S(),h='';
@@ -35,7 +51,7 @@ function render(){
   '<div class="navlinks"><a href="#drop">Shop</a><a href="#all">All units</a><a href="#ways">Ways to buy</a><a href="#visit">Visit</a></div><div class="acts">'+
   (canWrite&&!editing?'<button class="ownerbtn" id="b-edit">Edit site</button>':'')+'<button class="btn sm" data-msg="1">Message</button></div></div></nav>';
  var lines=String(s.heroTitle||'').split('\n').filter(Boolean),fp=featured();
- h+='<header class="hero" id="top"><div class="wrap hero-in"><p class="lbl">'+esc(s.heroEyebrow)+'</p><h1 class="disp">'+lines.map(function(l){return '<span>'+esc(l)+'</span>'}).join(' ')+'</h1><p class="sub">'+esc(s.heroSub)+'</p></div>'+
+ h+='<header class="hero brandmesh" id="top"><div class="seal-st" aria-hidden="true">'+sealSvg()+'</div><div class="wrap hero-in"><p class="lbl">'+esc(s.heroEyebrow)+'</p><h1 class="disp">'+lines.map(function(l){return '<span>'+esc(l)+'</span>'}).join(' ')+'</h1><p class="sub">'+esc(s.heroSub)+'</p></div>'+
   '<div class="rail" id="drop"><div class="bar" aria-hidden="true"></div><div class="track" id="track">'+fp.map(function(p,i){var pr=peso(p.price);return '<button class="slot" data-slot="'+p.id+'" style="--i:'+i+';--wl:'+[44,64,36,56,48,70][i%6]+'px" aria-label="'+esc(p.name+' '+p.spec)+'"><span class="swing"><span class="wire"></span><span class="clip"></span>'+(pr?'<span class="ptag">'+pr+'</span>':'')+'<span class="in"><span class="obj">'+pic(p)+'</span></span></span></button>'}).join('')+'</div>'+
   '<div class="rail-ui wrap"><button class="arw" aria-label="Previous" data-rail="-1">←</button><div class="focus" id="focus" aria-live="polite"></div><button class="arw" aria-label="Next" data-rail="1">→</button></div><div class="prog" id="prog"><i></i></div></div></header>';
  var tk=(s.ticker||[]).filter(Boolean);
@@ -49,14 +65,15 @@ function render(){
  h+='<section class="sec" id="ways" style="padding-top:20px"><div class="wrap"><div class="promise">'+(s.promise||[]).map(function(x,i){return '<div><span class="lbl">0'+(i+1)+'</span><b>'+esc(x.t)+'</b><p>'+esc(x.d)+'</p></div>'}).join('')+'</div>'+
   '<div class="sh2" style="margin-top:88px"><div><p class="lbl">Delivery & payment</p><h2 class="disp">Ways to buy</h2></div></div><div class="ways">'+
   (s.ways||[]).map(function(w,i){return '<article class="way"><span class="n">'+String(i+1).padStart(2,'0')+'</span><div><h3>'+esc(w.t)+'</h3><p>'+esc(w.d)+'</p></div></article>'}).join('')+'</div></div></section>';
+ h+=brandStory();
  h+='<section class="sec visit" id="visit"><div class="wrap"><div><p class="lbl">Physical store</p><h2 class="disp">Come see it sealed.</h2><dl>'+
   (s.address?'<div><dt class="lbl">Address</dt><dd>'+esc(s.address)+'</dd></div>':'')+(s.hours?'<div><dt class="lbl">Hours</dt><dd>'+esc(s.hours)+'</dd></div>':'')+
   (s.phone?'<div><dt class="lbl">Call / Viber</dt><dd><span class="sel">'+esc(s.phone)+'</span></dd></div>':'')+'</dl><div class="cta"><a class="btn" target="_blank" rel="noopener" href="'+esc(mapsUrl())+'">Google Maps</a><a class="btn ghost" target="_blank" rel="noopener" href="'+esc(wazeUrl())+'">Waze</a>'+(s.fb?'<a class="btn ghost" target="_blank" rel="noopener" href="'+esc(s.fb)+'">Facebook</a>':'')+'</div></div>'+
   '<div class="storeimg">'+(s.storePhoto?'<img alt="Estilo Pinas store" src="'+s.storePhoto+'">':(fp[0]?'<div class="solo"><div class="obj">'+pic(fp[0])+'</div><div class="sh"></div></div>':''))+'</div></div></section>';
- h+='<footer><div class="wrap"><a class="logo" href="#top"><span class="mk">'+logoMk()+'</span><span class="wm">'+esc(s.shopName)+'</span></a><span class="lbl">Since 2014 · All units brand new & sealed</span></div></footer>';
+ h+='<footer class="brandmesh"><div class="wrap foot"><canvas class="badge" data-badge="black" aria-label="'+esc(s.shopName)+' logo" role="img"></canvas><div class="foot-tx"><span class="lbl">Since 2014 · All units brand new &amp; sealed</span><span class="lbl">'+esc(s.address)+'</span><span class="lbl">© '+new Date().getFullYear()+' '+esc(s.shopName)+'™</span></div></div></footer>';
  if(!editing)h+='<button class="btn fab" data-msg="1">Order on Messenger</button>';
  app.innerHTML=h;
- setupRail();setupParallax();processImgs();
+ setupRail();setupParallax();processImgs();drawBadges();
 }
 function card(p){var sold=p.status==='soldout',pr=peso(p.price);
  return '<article class="pc'+(sold?' sold':'')+'" data-view="'+p.id+'"><div class="ph">'+pic(p)+(p.sample?'<span class="sample">SAMPLE</span>':'')+'</div><div class="sh"></div><div class="bd"><div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+'</div>'+
@@ -88,7 +105,7 @@ function gallery(p){return [p.photo].concat(p.photos||[]).filter(Boolean)}
 function specsOf(p){return (p.specs||[]).filter(function(x){return x&&x.k&&x.v})}
 function spotlight(){var p=state.products.find(function(x){return x.spotlight})||null;if(!p)return '';var pr=peso(p.price),g=gallery(p),big=g[g.length>1?g.length-1:0];
  var hl=specsOf(p).slice(0,3);
- return '<section class="spot" id="spot"><div class="wrap spot-in"><div class="spot-img">'+(big?'<img alt="'+esc(p.name)+'" src="'+(PROC[big]||big)+'"'+(PROC[big]?'':' data-proc="'+esc(big)+'"')+'>':box())+'<div class="sh"></div></div>'+
+ return '<section class="spot brandmesh" id="spot"><div class="wrap spot-in"><div class="spot-img">'+(big?'<img alt="'+esc(p.name)+'" src="'+(PROC[big]||big)+'"'+(PROC[big]?'':' data-proc="'+esc(big)+'"')+'>':box())+'<div class="sh"></div></div>'+
  '<div class="spot-tx"><p class="lbl">Now available</p><h2 class="disp">'+esc(p.name)+'</h2>'+(p.tagline?'<p class="tag">'+esc(p.tagline)+'</p>':'')+
  '<p class="pr">'+(pr?'From '+pr:'Message us for the latest price')+'</p>'+
  (hl.length?'<dl class="hl">'+hl.map(function(x){return '<div><dt class="lbl">'+esc(x.k)+'</dt><dd>'+esc(x.v)+'</dd></div>'}).join('')+'</dl>':'')+
