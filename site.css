@@ -474,3 +474,6 @@ html.fx .rv.in,html.fx .pc.in,html.fx .way.in,html.fx .sh2.in{opacity:1;transfor
 html,body{overflow-x:clip}
 .ticker{transform:rotate(-1.2deg);width:104%;margin-left:-2%}
 .bigmq,.hero,.spot,footer.foot-dark{max-width:100vw}
+.hero-logo{width:min(560px,86%)}
+.seal-st{right:auto;left:max(16px,4%);top:110px}
+@media (max-width:760px){.seal-st{top:auto;bottom:auto;left:10px;top:64px}}
