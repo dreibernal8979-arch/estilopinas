@@ -477,3 +477,4 @@ html,body{overflow-x:clip}
 .hero-logo{width:min(560px,86%)}
 .seal-st{right:auto;left:max(16px,4%);top:110px}
 @media (max-width:760px){.seal-st{top:auto;bottom:auto;left:10px;top:64px}}
+.storeimg .solo img{box-shadow:none;border-radius:0;filter:drop-shadow(-24px 32px 30px var(--shadow))}
