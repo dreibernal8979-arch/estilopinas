@@ -58,7 +58,9 @@ function setupFX(){
  var rv=[].slice.call(document.querySelectorAll('.rv,.pc,.way,.sh2'));
  if('IntersectionObserver' in window&&!RMq){document.documentElement.classList.add('fx');
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
-  rv.forEach(function(el,i){el.style.setProperty('--d',(i%4)*70+'ms');var r=el.getBoundingClientRect();if(r.top<innerHeight)el.classList.add('in');else io.observe(el)})}
+  rv.forEach(function(el,i){el.style.setProperty('--d',(i%4)*70+'ms');var r=el.getBoundingClientRect();if(r.top<innerHeight)el.classList.add('in');else io.observe(el)})
+  var chk=function(){var left=0;rv.forEach(function(el){if(el.classList.contains('in'))return;left++;if(el.getBoundingClientRect().top<innerHeight*0.95)el.classList.add('in')});if(!left)removeEventListener('scroll',chk)};
+  addEventListener('scroll',chk,{passive:true});setTimeout(chk,400)}
  // count-up
  var cs=[].slice.call(document.querySelectorAll('.cnt'));
  if('IntersectionObserver' in window&&!RMq){var io2=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;io2.unobserve(e.target);var el=e.target,to=+el.dataset.to,from=to>1900&&to<2100?1990:0,t0=performance.now();
