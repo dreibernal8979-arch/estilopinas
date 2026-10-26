@@ -201,7 +201,7 @@ function wireEd(){
 }
 function cutout(c){var x=c.getContext('2d'),w=c.width,h=c.height,d=x.getImageData(0,0,w,h),p=d.data,i;
  function bgAt(k){var r=p[k],g=p[k+1],b=p[k+2];return p[k+3]<20||(r>222&&g>222&&b>222&&Math.max(r,g,b)-Math.min(r,g,b)<26)}
- var corners=[0,(w-1)*4,(h-1)*w*4,((h-1)*w+w-1)*4];if(corners.filter(function(k){return p[k+3]<20}).length>=3)return c;var white=corners.filter(bgAt).length;if(white<3)return c;
+ var corners=[0,(w-1)*4,(h-1)*w*4,((h-1)*w+w-1)*4],tr=corners.filter(function(k){return p[k+3]<20}).length>=3;if(tr)bgAt=function(k){return p[k+3]<20||(p[k]>=252&&p[k+1]>=252&&p[k+2]>=252)};else if(corners.filter(bgAt).length<3)return c;
  var seen=new Uint8Array(w*h),st=[];for(i=0;i<w;i++){st.push(i,(h-1)*w+i)}for(i=0;i<h;i++){st.push(i*w,i*w+w-1)}
  while(st.length){var q=st.pop();if(seen[q])continue;var k=q*4;if(!bgAt(k))continue;seen[q]=1;p[k+3]=0;var px=q%w,py=(q/w)|0;if(px>0)st.push(q-1);if(px<w-1)st.push(q+1);if(py>0)st.push(q-w);if(py<h-1)st.push(q+w)}
  for(i=0;i<w*h;i++){if(seen[i])continue;var nx=i%w,ny=(i/w)|0;if((nx>0&&seen[i-1])||(nx<w-1&&seen[i+1])||(ny>0&&seen[i-w])||(ny<h-1&&seen[i+w]))p[i*4+3]=Math.min(p[i*4+3],150)}
