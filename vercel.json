@@ -1,0 +1,1 @@
+{ "cleanUrls": true, "redirects": [ {"source":"/edit","destination":"/admin","permanent":false} ] }
