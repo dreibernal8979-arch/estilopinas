@@ -12,7 +12,7 @@ function find(id){return state.products.find(function(x){return x.id===id})}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
 /* refined Estilo Pinas "e": a phone outline that writes an e */
 function mark(fg,notch){return '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="epg" gradientUnits="userSpaceOnUse" x1="222" y1="0" x2="290" y2="0"><stop offset="0" stop-color="#ff4f9a"/><stop offset=".5" stop-color="#8a5cff"/><stop offset="1" stop-color="#3d8bff"/></linearGradient></defs><path d="M92 262H420V196A76 76 0 0 0 344 120H168A76 76 0 0 0 92 196V316A76 76 0 0 0 168 392H392" fill="none" stroke="'+fg+'" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/><path d="M222 172H290" stroke="'+(notch||fg)+'" stroke-width="18" stroke-linecap="round"/></svg>'}
-function logoMk(){return '<img alt="" src="'+(S().logo||'/favicon-black.svg')+'">'}
+function logoMk(){return S().logo?'<img alt="" src="'+S().logo+'">':mark('currentColor','url(#epg)')}
 function box(){return '<span class="ph-phone"><span class="scr"></span><span class="isl"></span></span>'}
 var PROC={};
 function pic(p){if(!p.photo)return box();var u=PROC[p.photo];return '<img alt="'+esc(p.name+' '+p.spec)+'" src="'+(u||p.photo)+'"'+(u?'':' data-proc="'+esc(p.photo)+'"')+'>'}
@@ -28,11 +28,11 @@ function featured(){var f=state.products.filter(function(p){return p.featured});
 var SPOTS=[{x:'30%',y:'8%',w:'40%',d:22,z:3,r:'-2deg'},{x:'2%',y:'30%',w:'30%',d:12,z:2,r:'3deg'},{x:'66%',y:'30%',w:'30%',d:14,z:2,r:'-3deg'},{x:'20%',y:'60%',w:'22%',d:6,z:1,r:'2deg'},{x:'58%',y:'64%',w:'20%',d:5,z:1,r:'-2deg'}];
 function stage(items,cls){return '<div class="stage'+(cls?' '+cls:'')+'" aria-hidden="true">'+items.slice(0,SPOTS.length).map(function(p,i){var s=SPOTS[i];return '<div class="fl" style="--x:'+s.x+';--y:'+s.y+';--w:'+s.w+';--d:'+s.d+';--z:'+s.z+';--r:'+s.r+';--i:'+i+'"><div class="obj">'+pic(p)+'</div><div class="sh"></div></div>'}).join('')+'</div>'}
 
-function sealSvg(){return '<svg viewBox="0 0 200 200"><defs><path id="sealp" d="M100 100m-72 0a72 72 0 1 1 144 0a72 72 0 1 1-144 0"/></defs><circle cx="100" cy="100" r="98" fill="#0e0f11"/><text fill="#f4f4f2" style="font:700 14.5px Archivo,sans-serif;letter-spacing:3.2px"><textPath href="#sealp">BRAND NEW · SEALED · SINCE 2014 · </textPath></text><image href="/favicon-white.svg" x="70" y="62" width="60" height="78"/></svg>'}
+function sealSvg(){return '<svg viewBox="0 0 200 200"><defs><path id="sealp" d="M100 100m-72 0a72 72 0 1 1 144 0a72 72 0 1 1-144 0"/></defs><circle cx="100" cy="100" r="98" fill="#0e0f11"/><text fill="#f4f4f2" style="font:700 14.5px Archivo,sans-serif;letter-spacing:3.2px"><textPath href="#sealp">BRAND NEW · SEALED · SINCE 2014 · </textPath></text><g transform="translate(64 64) scale(.14)">'+mark('#f4f4f2','url(#epg)').replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'')+'</g></svg>'}
 function brandStory(){return '<section class="sec story brandmesh" id="story"><div class="wrap story-in"><div class="story-tx"><p class="lbl">The Estilo Pinas mark</p><h2 class="disp">A phone that writes an “e”.</h2>'+
  '<p>Our logo joins three things we stand for: the <b>phone</b> you came for, the <b>notch</b> that turns it into an “e”, and the <b>sealed box</b> every unit leaves in. It leans forward because we move fast: same-day COD, meet-ups and LBC nationwide.</p>'+
  '<div class="parts"><div><span class="pt pt-phone"></span><span class="lbl">Phone</span></div><div><span class="pt pt-notch"></span><span class="lbl">Notch</span></div><div><span class="pt pt-box"></span><span class="lbl">Sealed box</span></div></div></div>'+
- '<div class="story-logo tilt"><img src="/logo-black.svg" alt="Estilo Pinas logo" width="1400" height="760"></div></div></section>'}
+ '<div class="story-logo"><canvas class="badge" data-badge="black" aria-label="Estilo Pinas logo" role="img"></canvas></div></div></section>'}
 function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
 var BADGE={black:{body:'#0e0f11',side:'#2a2b30',screen:'#f4f4f2',text:'#0e0f11'},white:{body:'#f4f4f2',side:'#b9bac0',screen:'#0e0f11',text:'#f4f4f2'}};
 function drawBadge(cv,v){var W=1220,H=520,R=140,s=40,dx=30,dy=40,cw=1500,ch=760;cv.width=cw;cv.height=ch;var x=cv.getContext('2d');x.clearRect(0,0,cw,ch);x.save();x.translate(cw/2+10,ch/2-10);x.rotate(-8*Math.PI/180);
@@ -44,32 +44,6 @@ function drawBadge(cv,v){var W=1220,H=520,R=140,s=40,dx=30,dy=40,cw=1500,ch=760;
  x.font='700 38px "Archivo", sans-serif';x.fillText('™',W/2+20,-H/2+10);x.restore()}
 var fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('100px "Anton"'),document.fonts.load('600 30px "Archivo"')]).catch(function(){}):Promise.resolve();
 function drawBadges(){fontsReady.then(function(){document.querySelectorAll('canvas.badge').forEach(function(cv){drawBadge(cv,BADGE[cv.getAttribute('data-badge')]||BADGE.black)})})}
-function bento(){var s=S(),st=s.stats||[],pr=s.promise||[];
- function num(x){var m=String(x.n||'').match(/^(\D*)(\d+)(.*)$/);return m?'<span class="cnt" data-to="'+m[2]+'" data-pre="'+esc(m[1])+'" data-suf="'+esc(m[3])+'">'+esc(x.n)+'</span>':esc(x.n)}
- return '<section class="sec bento-sec"><div class="wrap"><div class="sh2 rv"><div><p class="lbl">Why Estilo Pinas</p><h2 class="disp">Legit. Sealed. Fast.</h2></div></div><div class="bento">'+
- '<article class="bx-card bx-big dark rv"><div class="glow"></div><p class="lbl">'+esc(pr[0]&&pr[0].t||'')+'</p><div class="huge">100%</div><p>'+esc(pr[0]&&pr[0].d||'')+'</p><img class="bx-icon" src="/favicon-white.svg" alt=""></article>'+
- (st[0]?'<article class="bx-card rv"><p class="lbl">'+esc(st[0].l)+'</p><div class="huge">'+num(st[0])+'</div><p>'+esc(pr[1]&&pr[1].d||'')+'</p></article>':'')+
- (st[1]?'<article class="bx-card mesh-card rv"><p class="lbl">'+esc(st[1].l)+'</p><div class="huge">'+num(st[1])+'</div><p>Real buyers follow us on Facebook. Ask them.</p></article>':'')+
- '<article class="bx-card bx-wide rv"><p class="lbl">'+esc(pr[2]&&pr[2].t||'Pay your way')+'</p><div class="pays">'+(s.ways||[]).slice(0,6).map(function(w){return '<span>'+esc(w.t)+'</span>'}).join('')+'</div><a class="tlink" href="#ways">See all ways to buy →</a></article>'+
- '</div></div></section>'}
-function setupFX(){
- var RMq=RM;
- // reveal on scroll (content is visible without JS; this only adds the entrance)
- var rv=[].slice.call(document.querySelectorAll('.rv,.pc,.way,.sh2'));
- if('IntersectionObserver' in window&&!RMq){document.documentElement.classList.add('fx');
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
-  rv.forEach(function(el,i){el.style.setProperty('--d',(i%4)*70+'ms');var r=el.getBoundingClientRect();if(r.top<innerHeight)el.classList.add('in');else io.observe(el)})
-  var chk=function(){var left=0;rv.forEach(function(el){if(el.classList.contains('in'))return;left++;if(el.getBoundingClientRect().top<innerHeight*0.95)el.classList.add('in')});if(!left)removeEventListener('scroll',chk)};
-  addEventListener('scroll',chk,{passive:true});setTimeout(chk,400)}
- // count-up
- var cs=[].slice.call(document.querySelectorAll('.cnt'));
- if('IntersectionObserver' in window&&!RMq){var io2=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;io2.unobserve(e.target);var el=e.target,to=+el.dataset.to,from=to>1900&&to<2100?1990:0,t0=performance.now();
-  (function step(t){var k=Math.min(1,(t-t0)/1400),v=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));el.textContent=el.dataset.pre+v+el.dataset.suf;if(k<1)requestAnimationFrame(step)})(t0)})},{threshold:.6});cs.forEach(function(c){io2.observe(c)})}
- // 3D tilt for logos
- if(!RMq)[].forEach.call(document.querySelectorAll('.hero-logo,.tilt'),function(el){var host=el.closest('.hero')||el;
-  host.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.setProperty('--rx',(-y*14).toFixed(2)+'deg');el.style.setProperty('--ry',(x*18).toFixed(2)+'deg')});
-  host.addEventListener('pointerleave',function(){el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')})});
-}
 function render(){
  stopRail();
  var s=S(),h='';
@@ -77,29 +51,29 @@ function render(){
   '<div class="navlinks"><a href="#drop">Shop</a><a href="#all">All units</a><a href="#ways">Ways to buy</a><a href="#visit">Visit</a></div><div class="acts">'+
   (canWrite&&!editing?'<button class="ownerbtn" id="b-edit">Edit site</button>':'')+'<button class="btn sm" data-msg="1">Message</button></div></div></nav>';
  var lines=String(s.heroTitle||'').split('\n').filter(Boolean),fp=featured();
- h+='<header class="hero" id="top"><div class="blobs" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div><div class="grain" aria-hidden="true"></div><div class="seal-st" aria-hidden="true">'+sealSvg()+'</div><div class="wrap hero-in"><p class="lbl">'+esc(s.heroEyebrow)+'</p><div class="hero-logo" id="heroLogo"><img src="/logo-color.svg" alt="'+esc(s.shopName)+' logo" width="1400" height="760"></div><h1 class="disp">'+lines.map(function(l){return '<span>'+esc(l)+'</span>'}).join(' ')+'</h1><p class="sub">'+esc(s.heroSub)+'</p></div>'+
+ h+='<header class="hero brandmesh" id="top"><div class="seal-st" aria-hidden="true">'+sealSvg()+'</div><div class="wrap hero-in"><p class="lbl">'+esc(s.heroEyebrow)+'</p><h1 class="disp">'+lines.map(function(l){return '<span>'+esc(l)+'</span>'}).join(' ')+'</h1><p class="sub">'+esc(s.heroSub)+'</p></div>'+
   '<div class="rail" id="drop"><div class="bar" aria-hidden="true"></div><div class="track" id="track">'+fp.map(function(p,i){var pr=peso(p.price);return '<button class="slot" data-slot="'+p.id+'" style="--i:'+i+';--wl:'+[44,64,36,56,48,70][i%6]+'px" aria-label="'+esc(p.name+' '+p.spec)+'"><span class="swing"><span class="wire"></span><span class="clip"></span>'+(pr?'<span class="ptag">'+pr+'</span>':'')+'<span class="in"><span class="obj">'+pic(p)+'</span></span></span></button>'}).join('')+'</div>'+
   '<div class="rail-ui wrap"><button class="arw" aria-label="Previous" data-rail="-1">←</button><div class="focus" id="focus" aria-live="polite"></div><button class="arw" aria-label="Next" data-rail="1">→</button></div><div class="prog" id="prog"><i></i></div></div></header>';
  var tk=(s.ticker||[]).filter(Boolean);
  if(tk.length){var one=tk.map(function(t){return '<span>'+esc(t)+'</span>'}).join('');h+='<div class="ticker" aria-label="'+esc(tk.join(', '))+'"><div class="tk" aria-hidden="true">'+one+one+one+one+'</div></div>'}
- h+=bento();
+ h+='<div class="wrap"><dl class="stats">'+(s.stats||[]).filter(function(x){return x.n}).map(function(x){return '<div><dt>'+esc(x.n)+'</dt><dd class="lbl">'+esc(x.l)+'</dd></div>'}).join('')+'</dl></div>';
  var c=cats(),list=state.products.filter(function(p){return filter==='All'||p.cat===filter});
  h+=spotlight();
- h+='<div class="bigmq" aria-hidden="true"><div class="bigmq-in"><span>Brand new</span><span class="o">Sealed</span><span>Since 2014</span><span class="o">Estilo Pinas</span><span>Brand new</span><span class="o">Sealed</span><span>Since 2014</span><span class="o">Estilo Pinas</span></div></div>';
  h+='<section class="sec" id="all" style="padding-top:20px"><div class="wrap"><div class="sh2"><div><p class="lbl">Full list</p><h2 class="disp">All units</h2><p>Prices can change. We confirm stock and price before you pay.</p></div></div>'+
   (c.length>1?'<div class="chips" role="group" aria-label="Category">'+['All'].concat(c).map(function(x){return '<button class="chip" aria-pressed="'+(filter===x)+'" data-cat="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div>':'')+
   '<div class="grid">'+(list.length?list.map(card).join(''):'<div class="empty">No units listed yet. Message us for what we have today.</div>')+'</div></div></section>';
- h+='<section class="sec" id="ways" style="padding-top:20px"><div class="wrap"><div class="sh2"><div><p class="lbl">Delivery & payment</p><h2 class="disp">Ways to buy</h2></div></div><div class="ways">'+
+ h+='<section class="sec" id="ways" style="padding-top:20px"><div class="wrap"><div class="promise">'+(s.promise||[]).map(function(x,i){return '<div><span class="lbl">0'+(i+1)+'</span><b>'+esc(x.t)+'</b><p>'+esc(x.d)+'</p></div>'}).join('')+'</div>'+
+  '<div class="sh2" style="margin-top:88px"><div><p class="lbl">Delivery & payment</p><h2 class="disp">Ways to buy</h2></div></div><div class="ways">'+
   (s.ways||[]).map(function(w,i){return '<article class="way"><span class="n">'+String(i+1).padStart(2,'0')+'</span><div><h3>'+esc(w.t)+'</h3><p>'+esc(w.d)+'</p></div></article>'}).join('')+'</div></div></section>';
  h+=brandStory();
  h+='<section class="sec visit" id="visit"><div class="wrap"><div><p class="lbl">Physical store</p><h2 class="disp">Come see it sealed.</h2><dl>'+
   (s.address?'<div><dt class="lbl">Address</dt><dd>'+esc(s.address)+'</dd></div>':'')+(s.hours?'<div><dt class="lbl">Hours</dt><dd>'+esc(s.hours)+'</dd></div>':'')+
   (s.phone?'<div><dt class="lbl">Call / Viber</dt><dd><span class="sel">'+esc(s.phone)+'</span></dd></div>':'')+'</dl><div class="cta"><a class="btn" target="_blank" rel="noopener" href="'+esc(mapsUrl())+'">Google Maps</a><a class="btn ghost" target="_blank" rel="noopener" href="'+esc(wazeUrl())+'">Waze</a>'+(s.fb?'<a class="btn ghost" target="_blank" rel="noopener" href="'+esc(s.fb)+'">Facebook</a>':'')+'</div></div>'+
   '<div class="storeimg">'+(s.storePhoto?'<img alt="Estilo Pinas store" src="'+s.storePhoto+'">':(fp[0]?'<div class="solo"><div class="obj">'+pic(fp[0])+'</div><div class="sh"></div></div>':''))+'</div></div></section>';
- h+='<footer class="foot-dark"><div class="wrap foot"><img class="foot-logo" src="/logo-color-white.svg" alt="'+esc(s.shopName)+' logo" width="1400" height="760"><div class="foot-tx"><span class="lbl">Since 2014 · All units brand new &amp; sealed</span><span class="lbl">'+esc(s.address)+'</span><span class="lbl">© '+new Date().getFullYear()+' '+esc(s.shopName)+'™</span></div></div></footer>';
+ h+='<footer class="brandmesh"><div class="wrap foot"><canvas class="badge" data-badge="black" aria-label="'+esc(s.shopName)+' logo" role="img"></canvas><div class="foot-tx"><span class="lbl">Since 2014 · All units brand new &amp; sealed</span><span class="lbl">'+esc(s.address)+'</span><span class="lbl">© '+new Date().getFullYear()+' '+esc(s.shopName)+'™</span></div></div></footer>';
  if(!editing)h+='<button class="btn fab" data-msg="1">Order on Messenger</button>';
  app.innerHTML=h;
- setupRail();setupParallax();processImgs();setupFX();
+ setupRail();setupParallax();processImgs();drawBadges();
 }
 function card(p){var sold=p.status==='soldout',pr=peso(p.price);
  return '<article class="pc'+(sold?' sold':'')+'" data-view="'+p.id+'"><div class="ph">'+pic(p)+(p.sample?'<span class="sample">SAMPLE</span>':'')+'</div><div class="sh"></div><div class="bd"><div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+'</div>'+
