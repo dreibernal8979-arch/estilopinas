@@ -42,6 +42,7 @@ function render(){
  if(tk.length){var one=tk.map(function(t){return '<span>'+esc(t)+'</span>'}).join('');h+='<div class="ticker" aria-label="'+esc(tk.join(', '))+'"><div class="tk" aria-hidden="true">'+one+one+one+one+'</div></div>'}
  h+='<div class="wrap"><dl class="stats">'+(s.stats||[]).filter(function(x){return x.n}).map(function(x){return '<div><dt>'+esc(x.n)+'</dt><dd class="lbl">'+esc(x.l)+'</dd></div>'}).join('')+'</dl></div>';
  var c=cats(),list=state.products.filter(function(p){return filter==='All'||p.cat===filter});
+ h+=spotlight();
  h+='<section class="sec" id="all" style="padding-top:20px"><div class="wrap"><div class="sh2"><div><p class="lbl">Full list</p><h2 class="disp">All units</h2><p>Prices can change. We confirm stock and price before you pay.</p></div></div>'+
   (c.length>1?'<div class="chips" role="group" aria-label="Category">'+['All'].concat(c).map(function(x){return '<button class="chip" aria-pressed="'+(filter===x)+'" data-cat="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div>':'')+
   '<div class="grid">'+(list.length?list.map(card).join(''):'<div class="empty">No units listed yet. Message us for what we have today.</div>')+'</div></div></section>';
@@ -58,9 +59,9 @@ function render(){
  setupRail();setupParallax();processImgs();
 }
 function card(p){var sold=p.status==='soldout',pr=peso(p.price);
- return '<article class="pc'+(sold?' sold':'')+'"><div class="ph">'+pic(p)+(p.sample?'<span class="sample">SAMPLE</span>':'')+'</div><div class="sh"></div><div class="bd"><div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+'</div>'+
+ return '<article class="pc'+(sold?' sold':'')+'" data-view="'+p.id+'"><div class="ph">'+pic(p)+(p.sample?'<span class="sample">SAMPLE</span>':'')+'</div><div class="sh"></div><div class="bd"><div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+'</div>'+
  '<div class="rw"><span class="pr'+(pr?'':' ask')+'">'+(pr||'Message for price')+'</span><span class="st s-'+p.status+'">'+STATUS[p.status]+'</span></div>'+
- '<button class="tlink" data-order="'+p.id+'"'+(sold?' disabled':'')+'>'+(sold?'Sold out':p.status==='preorder'?'Pre-order →':'Order →')+'</button></div></article>'}
+ '<div class="pc-act"><button class="tlink" data-view="'+p.id+'">Details</button><button class="tlink" data-order="'+p.id+'"'+(sold?' disabled':'')+'>'+(sold?'Sold out':p.status==='preorder'?'Pre-order →':'Order →')+'</button></div></div></article>'}
 
 function setupParallax(){if(RM)return;var st=document.querySelector('.hero-stage'),hero=document.querySelector('.hero');if(!st||!hero)return;
  hero.addEventListener('pointermove',function(e){var r=hero.getBoundingClientRect();st.style.setProperty('--mx',((e.clientX-r.left)/r.width-.5).toFixed(3));st.style.setProperty('--my',((e.clientY-r.top)/r.height-.5).toFixed(3))});
@@ -81,10 +82,43 @@ function setupRail(){var t=document.getElementById('track');if(!t)return;var pro
 function stopRail(){if(railTimer)clearInterval(railTimer);railTimer=null}
 function showFocus(){var f=document.getElementById('focus'),p=find(focusId);if(!f||!p)return;var pr=peso(p.price),sold=p.status==='soldout';
  f.innerHTML='<div class="nm">'+esc(p.name)+'</div><div class="sp">'+esc(p.spec)+' <span class="dot">·</span> <span class="pr">'+(pr||'Message for price')+'</span> <span class="st s-'+p.status+'">'+STATUS[p.status]+'</span></div>'+
- '<button class="btn ghost sm" data-order="'+p.id+'"'+(sold?' disabled':'')+'>'+(sold?'Sold out':'See availability')+'</button>'}
+ '<div class="fbtns"><button class="btn sm" data-view="'+p.id+'">View details</button><button class="btn ghost sm" data-order="'+p.id+'"'+(sold?' disabled':'')+'>'+(sold?'Sold out':'See availability')+'</button></div>'}
 
-function openOrder(id){var p=id?find(id):null,s=S();
- var text=p?'Hi '+s.shopName+'! I want to '+(p.status==='preorder'?'pre-order':'order')+': '+p.name+(p.spec?' ('+p.spec+')':'')+(peso(p.price)?' – '+peso(p.price):'')+'. Is it available?':'Hi '+s.shopName+'! I have a question about a unit.';
+function gallery(p){return [p.photo].concat(p.photos||[]).filter(Boolean)}
+function specsOf(p){return (p.specs||[]).filter(function(x){return x&&x.k&&x.v})}
+function spotlight(){var p=state.products.find(function(x){return x.spotlight})||null;if(!p)return '';var pr=peso(p.price),g=gallery(p),big=g[g.length>1?g.length-1:0];
+ var hl=specsOf(p).slice(0,3);
+ return '<section class="spot" id="spot"><div class="wrap spot-in"><div class="spot-img">'+(big?'<img alt="'+esc(p.name)+'" src="'+(PROC[big]||big)+'"'+(PROC[big]?'':' data-proc="'+esc(big)+'"')+'>':box())+'<div class="sh"></div></div>'+
+ '<div class="spot-tx"><p class="lbl">Now available</p><h2 class="disp">'+esc(p.name)+'</h2>'+(p.tagline?'<p class="tag">'+esc(p.tagline)+'</p>':'')+
+ '<p class="pr">'+(pr?'From '+pr:'Message us for the latest price')+'</p>'+
+ (hl.length?'<dl class="hl">'+hl.map(function(x){return '<div><dt class="lbl">'+esc(x.k)+'</dt><dd>'+esc(x.v)+'</dd></div>'}).join('')+'</dl>':'')+
+ '<div class="cta"><button class="btn" data-view="'+p.id+'">View details</button><button class="btn ghost" data-order="'+p.id+'">Order</button></div></div></div></section>'}
+var viewEl=null;
+function openView(id){var p=find(id);if(!p)return;var s=S(),pr=peso(p.price),sold=p.status==='soldout',g=gallery(p),sp=specsOf(p);
+ closeView();viewEl=document.createElement('div');viewEl.className='pv';viewEl.setAttribute('role','dialog');viewEl.setAttribute('aria-modal','true');viewEl.setAttribute('aria-label',p.name);
+ function im(u,cls){return '<img class="'+(cls||'')+'" alt="'+esc(p.name)+'" src="'+(PROC[u]||u)+'"'+(PROC[u]?'':' data-proc="'+esc(u)+'"')+'>'}
+ viewEl.innerHTML='<div class="pv-top wrap"><button class="tlink" data-close="1">← Back to shop</button><span class="lbl">'+esc(p.cat||'')+'</span></div>'+
+ '<div class="wrap pv-grid"><div class="pv-gal"><div class="pv-main">'+(g[0]?im(g[0],'pv-big'):box())+'<div class="sh"></div></div>'+
+ (g.length>1?'<div class="pv-thumbs">'+g.map(function(u,i){return '<button class="pv-th'+(i?'':' on')+'" data-img="'+esc(u)+'" aria-label="Photo '+(i+1)+'">'+im(u)+'</button>'}).join('')+'</div>':'')+'</div>'+
+ '<div class="pv-info"><span class="st s-'+p.status+'">'+STATUS[p.status]+'</span><h2 class="disp">'+esc(p.name)+'</h2>'+(p.tagline?'<p class="tag">'+esc(p.tagline)+'</p>':'')+
+ '<p class="pv-spec">'+esc(p.spec)+'</p>'+(p.colors?'<p class="pv-col"><span class="lbl">Colors</span> '+esc(p.colors)+'</p>':'')+
+ '<p class="pv-pr">'+(pr||'Message for price')+'</p>'+
+ '<div class="pv-cta"><button class="btn" data-order="'+p.id+'"'+(sold?' disabled':'')+'>'+(sold?'Sold out':p.status==='preorder'?'Pre-order on Messenger':'Order on Messenger')+'</button><button class="btn ghost" data-ask="'+p.id+'">Ask a question</button></div>'+
+ '<ul class="pv-trust"><li>Brand new, factory sealed</li><li>Legit shop since 2014</li><li>COD, card, LBC or layaway</li></ul>'+
+ (sp.length?'<h3 class="lbl pv-h">Key specs</h3><dl class="pv-specs">'+sp.map(function(x){return '<div><dt>'+esc(x.k)+'</dt><dd>'+esc(x.v)+'</dd></div>'}).join('')+'</dl>':'')+
+ '</div></div>';
+ document.body.appendChild(viewEl);document.body.style.overflow='hidden';try{history.replaceState(null,'','#'+p.id)}catch(e){}
+ processImgs();
+ viewEl.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.close)return closeView();
+  if(b.dataset.order)return openOrder(b.dataset.order);
+  if(b.dataset.ask){return openOrder(null,'Hi '+s.shopName+'! I have a question about the '+p.name+(p.spec?' ('+p.spec+')':'')+': ')}
+  if(b.dataset.img){var src=b.dataset.img,big=viewEl.querySelector('.pv-main');big.innerHTML=im(src,'pv-big')+'<div class="sh"></div>';viewEl.querySelectorAll('.pv-th').forEach(function(x){x.classList.toggle('on',x===b)});processImgs()}});
+}
+function closeView(){if(viewEl){viewEl.remove();viewEl=null;document.body.style.overflow='';try{history.replaceState(null,'',location.pathname)}catch(e){}}}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeView()});
+function openOrder(id,preset){var p=id?find(id):null,s=S();
+ var text=preset?preset:p?'Hi '+s.shopName+'! I want to '+(p.status==='preorder'?'pre-order':'order')+': '+p.name+(p.spec?' ('+p.spec+')':'')+(peso(p.price)?' – '+peso(p.price):'')+'. Is it available?':'Hi '+s.shopName+'! I have a question about a unit.';
  var url=msgrUrl(text),d=document.createElement('div');d.className='sheet';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
  d.innerHTML='<div class="panel"><p class="lbl">'+(p?'Order':'Message us')+'</p><h3 class="disp">'+(p?esc(p.name):esc(s.shopName))+'</h3>'+(p?'<div class="small">'+esc(p.spec)+(peso(p.price)?' · '+peso(p.price):'')+'</div>':'')+
   '<label class="lbl" for="ordmsg">Your message</label><textarea class="msg" id="ordmsg">'+esc(text)+'</textarea>'+
@@ -97,7 +131,9 @@ function openOrder(id){var p=id?find(id):null,s=S();
   if(e.target.id==='ordcopy'){try{navigator.clipboard.writeText(ta.value).then(function(){toast('Message copied')},function(){ta.select();toast('Selected. Copy it now.')})}catch(_){ta.select();toast('Selected. Copy it now.')}}});
 }
 
-app.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;
+app.addEventListener('click',function(e){var t=e.target.closest('button');
+ if(!t){var cardEl=e.target.closest('[data-view]');if(cardEl)openView(cardEl.getAttribute('data-view'));return}
+ if(t.dataset.view)return openView(t.dataset.view);
  if(t.dataset.order)return openOrder(t.dataset.order);
  if(t.dataset.msg)return openOrder(null);
  if(t.dataset.cat){filter=t.dataset.cat;return render()}
@@ -114,7 +150,11 @@ function edHTML(){var s=S();
   return '<div class="erow"><div class="top"><div class="thumb">'+pic(p)+'</div><div class="tools"><label class="up">'+(p.photo?'Change photo':'Add photo (PNG)')+'<input type="file" accept="image/*" data-up="'+p.id+'"></label>'+(p.photo?'<button data-nophoto="'+p.id+'">Remove photo</button>':'')+'</div></div>'+
   f('Name','data-p="name" data-id="'+p.id+'"',p.name)+f('Details','data-p="spec" data-id="'+p.id+'"',p.spec,'256GB · Brand new, sealed')+
   '<div class="two">'+f('Price (₱)','data-p="price" data-id="'+p.id+'" inputmode="numeric"',p.price,'Blank = message for price')+f('Category','data-p="cat" data-id="'+p.id+'" list="catlist"',p.cat)+'</div>'+
-  '<div class="two"><div class="f"><label>Status</label><select data-p="status" data-id="'+p.id+'">'+o+'</select></div><label class="chk"><input type="checkbox" data-p="featured" data-id="'+p.id+'"'+(p.featured?' checked':'')+'> Show in top section</label></div>'+
+  '<div class="two"><div class="f"><label>Status</label><select data-p="status" data-id="'+p.id+'">'+o+'</select></div><label class="chk"><input type="checkbox" data-p="featured" data-id="'+p.id+'"'+(p.featured?' checked':'')+'> Show on the rail</label></div>'+
+  '<label class="chk"><input type="checkbox" data-p="spotlight" data-id="'+p.id+'"'+(p.spotlight?' checked':'')+'> Big spotlight banner</label>'+
+  f('Tagline (one short line)','data-p="tagline" data-id="'+p.id+'"',p.tagline||'')+f('Colors','data-p="colors" data-id="'+p.id+'"',p.colors||'','e.g. Night Sky, Star White')+
+  f('Key specs (one per line, Label: value)','data-p="specsText" data-id="'+p.id+'"',specsOf(p).map(function(x){return x.k+': '+x.v}).join('\n'),'Chip: A20 Pro',1)+
+  '<div class="f"><label>More photos</label><div class="tools gal-ed">'+(p.photos||[]).map(function(u,j){return '<span class="gthumb"><img alt="" src="'+(PROC[u]||u)+'"><button data-gdel="'+p.id+'" data-j="'+j+'" aria-label="Remove photo">×</button></span>'}).join('')+'<label class="up">+ Add photo<input type="file" accept="image/*" data-gup="'+p.id+'"></label></div></div>'+
   '<div class="tools">'+(i>0?'<button data-mv="-1" data-id="'+p.id+'">↑ Up</button>':'')+(i<state.products.length-1?'<button data-mv="1" data-id="'+p.id+'">↓ Down</button>':'')+'<button class="del" data-del="'+p.id+'">Delete</button></div></div>'}).join('');
  var ways=(s.ways||[]).map(function(w,i){return '<div class="erow">'+f('Title','data-w="t" data-i="'+i+'"',w.t)+f('Details','data-w="d" data-i="'+i+'"',w.d,'',1)+'<div class="tools"><button class="del" data-wdel="'+i+'">Delete</button></div></div>'}).join('');
  var prom=(s.promise||[]).map(function(w,i){return '<div class="two">'+f('Promise '+(i+1),'data-pm="t" data-i="'+i+'"',w.t)+f('Line','data-pm="d" data-i="'+i+'"',w.d)+'</div>'}).join('');
@@ -137,12 +177,14 @@ function paintEd(){var open=[].map.call(ed.querySelectorAll('details'),function(
 var rt=0;function live(){dirty=true;var st=document.getElementById('ed-state');if(st)st.textContent='Unsaved changes';clearTimeout(rt);rt=setTimeout(render,180)}
 function wireEd(){
  ed.addEventListener('input',function(e){var t=e.target,d=t.dataset,s=S();
-  if(d.p){var p=find(d.id);p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false}
+  if(d.p==='specsText'){var p0=find(d.id);p0.specs=t.value.split('\n').map(function(l){var i=l.indexOf(':');return i>0?{k:l.slice(0,i).trim(),v:l.slice(i+1).trim()}:null}).filter(Boolean)}
+  else if(d.p){var p=find(d.id);p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false}
   else if(d.s){s[d.s]=d.s==='ticker'?t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean):t.value}
   else if(d.w){s.ways[+d.i][d.w]=t.value}else if(d.pm){s.promise[+d.i][d.pm]=t.value}else if(d.st){s.stats[+d.i][d.st]=t.value}else return;
   live()});
  ed.addEventListener('change',function(e){var t=e.target,d=t.dataset;
-  if(d.p==='status'||d.p==='featured'){var p=find(d.id);p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false;live()}
+  if(d.p==='status'||d.p==='featured'||d.p==='spotlight'){var p=find(d.id);if(d.p==='spotlight'&&t.checked)state.products.forEach(function(x){x.spotlight=false});p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false;live();if(d.p==='spotlight')paintEd()}
+  if(d.gup&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var p=find(d.gup);(p.photos=p.photos||[]).push(url);live();paintEd()})})}
   if((d.up||d.upk)&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],d.upk==='storePhoto'?1600:1100,function(du){uploadImg(du,function(url){if(d.up){var p=find(d.up);p.photo=url;p.sample=false}else S()[d.upk]=url;live();paintEd()})},d.upk==='storePhoto')}});
  ed.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;var d=t.dataset,s=S();
   if(t.id==='ed-close'){editing=false;ed.remove();ed=null;render();if(dirty)toast('Not saved yet. Open Edit site and tap Save.');return}
@@ -152,6 +194,7 @@ function wireEd(){
   if(t.id==='ed-wadd'){s.ways.push({t:'New way to buy',d:''});live();paintEd();return}
   if(d.wdel){s.ways.splice(+d.wdel,1);live();paintEd();return}
   if(d.del){if(d.confirm){state.products=state.products.filter(function(x){return x.id!==d.del});live();paintEd();return}d.confirm='1';t.textContent='Tap again to delete';return}
+  if(d.gdel){var pg=find(d.gdel);pg.photos.splice(+d.j,1);live();paintEd();return}
   if(d.nophoto){find(d.nophoto).photo='';live();paintEd();return}
   if(d.clr){s[d.clr]='';live();paintEd();return}
   if(d.mv){var a=state.products,i=a.findIndex(function(x){return x.id===d.id}),j=i+Number(d.mv),tmp=a[i];a[i]=a[j];a[j]=tmp;live();paintEd();return}});
@@ -200,7 +243,7 @@ function loginBox(msg){var b=document.getElementById('lg');if(!b){b=document.cre
 }
 function afterLogin(){sb.rpc('is_owner').then(function(r){if(r.data===true){var b=document.getElementById('lg');if(b)b.remove();canWrite=true;openEditor();addOut()}else{sb.auth.signOut();loginBox('This account cannot edit this shop.')}})}
 function addOut(){var o=document.createElement('button');o.className='tlink lgout';o.textContent='Log out';o.onclick=function(){sb.auth.signOut().then(function(){location.reload()})};document.body.appendChild(o)}
-render();loadRemote();
+render();loadRemote().then(function(){var h=(location.hash||'').slice(1);if(h&&find(h))openView(h)});
 if(window.EP_MODE==='admin'){
  if(!(window.supabase&&window.supabase.createClient)){toast('Login could not load. Check your internet and reload.')}
  else{sb=window.supabase.createClient(CFG.url,CFG.key);sb.auth.getSession().then(function(r){if(r.data&&r.data.session)afterLogin();else loginBox()})}
