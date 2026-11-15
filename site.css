@@ -367,13 +367,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .pt-notch{width:46px;height:12px;margin-block:12px;border-radius:99px;background:var(--grad)}
 .pt-box{width:64px;border-radius:12px;background:var(--ink);box-shadow:-6px 7px 0 color-mix(in srgb,var(--ink) 65%,var(--bg))}
 .story-logo{display:grid;place-items:center}
-canvas.badge{display:block;width:100%;max-width:560px;height:auto;aspect-ratio:1500/760;filter:drop-shadow(-18px 26px 24px var(--shadow))}
-.story-logo canvas.badge{animation:float 7s ease-in-out infinite}
+img.badge,canvas.badge{display:block;width:100%;max-width:560px;height:auto;aspect-ratio:1408/948;filter:drop-shadow(-18px 26px 24px var(--shadow))}
+.story-logo .badge{animation:float 7s ease-in-out infinite}
 /* footer with badge */
 footer.brandmesh{padding-block:40px calc(30px + env(safe-area-inset-bottom,0px))}
 footer .foot{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:28px;align-items:center;border-top:0;padding-block:0}
 @media (max-width:700px){footer .foot{grid-template-columns:1fr}}
-footer canvas.badge{max-width:300px;filter:drop-shadow(-12px 18px 16px var(--shadow))}
+footer .badge{max-width:300px;filter:drop-shadow(-12px 18px 16px var(--shadow))}
 .foot-tx{display:grid;gap:8px;justify-items:end;text-align:right}
 @media (max-width:700px){.foot-tx{justify-items:start;text-align:left}}
 /* spotlight & visit pick up the mesh softly */
