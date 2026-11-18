@@ -1,5 +1,5 @@
 (function(){
-var state=JSON.parse(document.getElementById('shop-data').textContent),saved=JSON.stringify(state),CFG=window.EP_CONFIG||{},sb=null;
+var state=JSON.parse(document.getElementById('shop-data').textContent);function withPL(st){if(st&&!st.priceList&&window.EP_PRICES_DEFAULT)st.priceList=JSON.parse(JSON.stringify(window.EP_PRICES_DEFAULT));return st}withPL(state);var saved=JSON.stringify(state),CFG=window.EP_CONFIG||{},sb=null;
 var editing=false,dirty=false,filter='All',canWrite=false,art=null,railTimer=null,railRAF=0,railUser=false,focusId=null;
 var app=document.getElementById('app');
 var STATUS={available:'Available',reserved:'Reserved',soldout:'Sold out',preorder:'Pre-order'};
@@ -48,7 +48,7 @@ function render(){
  stopRail();
  var s=S(),h='';
  h+='<nav class="nav"><div class="wrap"><a class="logo" href="#top"><span class="mk">'+logoMk()+'</span><span class="wm">'+esc(s.shopName)+'</span></a>'+
-  '<div class="navlinks"><a href="#drop">Shop</a><a href="#all">All units</a><a href="#ways">Ways to buy</a><a href="#visit">Visit</a></div><div class="acts">'+
+  '<div class="navlinks"><a href="#drop">Shop</a><a href="#all">All units</a><a href="#ways">Ways to buy</a><a href="/prices">Price list</a><a href="#visit">Visit</a></div><div class="acts">'+
   (canWrite&&!editing?'<button class="ownerbtn" id="b-edit">Edit site</button>':'')+'<button class="btn sm" data-msg="1">Message</button></div></div></nav>';
  var lines=String(s.heroTitle||'').split('\n').filter(Boolean),fp=featured();
  h+='<header class="hero brandmesh" id="top"><div class="seal-st" aria-hidden="true">'+sealSvg()+'</div><div class="wrap hero-in"><p class="lbl">'+esc(s.heroEyebrow)+'</p><h1 class="disp">'+lines.map(function(l){return '<span>'+esc(l)+'</span>'}).join(' ')+'</h1><p class="sub">'+esc(s.heroSub)+'</p></div>'+
@@ -179,7 +179,7 @@ function edHTML(){var s=S();
  return '<div class="ed-h"><b>Edit site</b><button class="btn ghost sm" id="ed-close">Close</button></div><div class="ed-b">'+
   '<datalist id="catlist">'+['iPhone','iPad','Android','Mac','Accessories'].concat(cats()).filter(function(v,i,a){return a.indexOf(v)===i}).map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist>'+
   '<details open><summary>Products ('+state.products.length+')</summary><div class="g"><button class="addrow" id="ed-add">+ Add product</button>'+prods+'</div></details>'+
-  '<details><summary>Top of page</summary><div class="g">'+f('Small line on top','data-s="heroEyebrow"',s.heroEyebrow)+f('Big headline (one line per row)','data-s="heroTitle"',s.heroTitle,'',1)+f('Description','data-s="heroSub"',s.heroSub,'',1)+stats+'</div></details>'+
+  plHTML()+'<details><summary>Top of page</summary><div class="g">'+f('Small line on top','data-s="heroEyebrow"',s.heroEyebrow)+f('Big headline (one line per row)','data-s="heroTitle"',s.heroTitle,'',1)+f('Description','data-s="heroSub"',s.heroSub,'',1)+stats+'</div></details>'+
   '<details><summary>Moving banner</summary><div class="g">'+f('One message per line','data-s="ticker"',(s.ticker||[]).join('\n'),'',1)+'</div></details>'+
   '<details><summary>Latest drop section</summary><div class="g">'+f('Title','data-s="railTitle"',s.railTitle)+f('Line under title','data-s="railSub"',s.railSub)+'</div></details>'+
   '<details><summary>Promises</summary><div class="g">'+prom+'</div></details>'+
@@ -188,12 +188,43 @@ function edHTML(){var s=S();
    '<div class="tools"><label class="up">'+(s.storePhoto?'Change store photo':'Add store photo')+'<input type="file" accept="image/*" data-upk="storePhoto"></label>'+(s.storePhoto?'<button data-clr="storePhoto">Remove</button>':'')+'</div></div></details>'+
   '<details><summary>Brand</summary><div class="g">'+f('Shop name','data-s="shopName"',s.shopName)+'<div class="tools"><label class="up">'+(s.logo?'Change logo (PNG)':'Use my own logo file (PNG)')+'<input type="file" accept="image/*" data-upk="logo"></label>'+(s.logo?'<button data-clr="logo">Use built-in logo</button>':'')+'</div></div></details>'+
   '</div><div class="ed-f"><span class="small" id="ed-state">'+(dirty?'Unsaved changes':'Changes show live. Tap Save to publish.')+'</span><div class="tools"><button class="btn ghost sm" id="ed-cancel">Undo all</button><button class="btn sm" id="ed-save">Save</button></div></div>'}
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.forEach(function(c){c.items.forEach(function(it){n+=it.variants.length})});
+ var h='<details><summary>Price list ('+n+' prices)</summary><div class="g"><p class="small">These prices show on the <a href="/prices" target="_blank" rel="noopener">price list page</a> after you tap Save. The "Updated" date changes by itself.</p>';
+ P.categories.forEach(function(c,ci){
+  h+='<div class="pl-cat"><div class="f"><label>Category name</label><input data-pl="cname" data-c="'+ci+'" value="'+esc(c.name)+'"></div>';
+  c.items.forEach(function(it,ii){var k='data-c="'+ci+'" data-i="'+ii+'"';
+   h+='<div class="erow">'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Extra details (optional)','data-pl="spec" '+k,it.spec||'','e.g. Wi-Fi · Space Black');
+   it.variants.forEach(function(v,vi){var kv=k+' data-v="'+vi+'"';
+    h+='<div class="pl-var"><div class="two">'+f('Storage / option','data-pl="vlabel" '+kv,v.label,'256GB')+f('Price (₱)','data-pl="vprice" inputmode="numeric" '+kv,v.price,'Blank = message for price')+'</div>'+
+     '<div class="tools"><label class="chk"><input type="checkbox" data-pl="vavail" '+kv+(v.status!=='unavailable'?' checked':'')+'> Available</label>'+(it.variants.length>1?'<button class="del" data-plvdel="'+ci+','+ii+','+vi+'">Remove option</button>':'')+'</div></div>'});
+   h+='<div class="tools"><button data-pladdv="'+ci+','+ii+'">+ Add storage option</button>'+(ii>0?'<button data-plmv="'+ci+','+ii+',-1">↑ Up</button>':'')+(ii<c.items.length-1?'<button data-plmv="'+ci+','+ii+',1">↓ Down</button>':'')+'<button class="del" data-pldel="'+ci+','+ii+'">Delete model</button></div></div>'});
+  h+='<div class="tools"><button class="addrow" data-pladd="'+ci+'">+ Add model to '+esc(c.name)+'</button><button class="del" data-plcdel="'+ci+'">Delete category</button></div></div>'});
+ h+='<button class="addrow" id="pl-addcat">+ Add category</button>'+f('Reminder label','data-pl="noteLabel"',P.noteLabel||'')+f('Reminder heading','data-pl="noteTitle"',P.noteTitle||'')+f('Reminder text (one paragraph per line)','data-pl="note"',(P.note||[]).join('\n'),'',1)+'</div></details>';
+ return h}
+function plSet(t){var d=t.dataset,P=state.priceList,c=P.categories[+d.c],it=c&&c.items[+d.i],v=it&&it.variants[+d.v];
+ if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='vlabel')v.label=t.value;
+ else if(d.pl==='vprice'){var x=t.value.replace(/[^0-9]/g,'');v.price=x?Number(x):''}else if(d.pl==='vavail')v.status=t.checked?'available':'unavailable';
+ else if(d.pl==='note')P.note=t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean);else P[d.pl]=t.value;
+ P.updated=today()}
+function plClick(t){var d=t.dataset,P=state.priceList;if(!P)return false;var a;
+ function conf(){if(d.confirm)return true;d.confirm='1';t.textContent='Tap again to delete';return false}
+ if(d.pladdv){a=d.pladdv.split(',');P.categories[+a[0]].items[+a[1]].variants.push({label:'',price:'',status:'available'})}
+ else if(d.plvdel){a=d.plvdel.split(',');P.categories[+a[0]].items[+a[1]].variants.splice(+a[2],1)}
+ else if(d.pladd){P.categories[+d.pladd].items.push({id:'m'+Date.now().toString(36),model:'New model',spec:'',variants:[{label:'',price:'',status:'available'}]})}
+ else if(d.pldel){if(!conf())return true;a=d.pldel.split(',');P.categories[+a[0]].items.splice(+a[1],1)}
+ else if(d.plcdel){if(!conf())return true;P.categories.splice(+d.plcdel,1)}
+ else if(d.plmv){a=d.plmv.split(',').map(Number);var L=P.categories[a[0]].items,j=a[1]+a[2],tmp=L[a[1]];L[a[1]]=L[j];L[j]=tmp}
+ else if(t.id==='pl-addcat'){P.categories.push({id:'c'+Date.now().toString(36),name:'New category',items:[]})}
+ else return false;
+ P.updated=today();live();paintEd();return true}
 function openEditor(){editing=true;stopRail();if(!ed){ed=document.createElement('aside');ed.className='ed';ed.setAttribute('aria-label','Edit site');document.body.appendChild(ed);wireEd()}paintEd();render()}
 function paintEd(){var open=[].map.call(ed.querySelectorAll('details'),function(d){return d.open}),sc=(ed.querySelector('.ed-b')||{}).scrollTop||0;ed.innerHTML=edHTML();
  if(open.length)ed.querySelectorAll('details').forEach(function(d,i){d.open=!!open[i]});var b=ed.querySelector('.ed-b');if(b)b.scrollTop=sc}
 var rt=0;function live(){dirty=true;var st=document.getElementById('ed-state');if(st)st.textContent='Unsaved changes';clearTimeout(rt);rt=setTimeout(render,180)}
 function wireEd(){
  ed.addEventListener('input',function(e){var t=e.target,d=t.dataset,s=S();
+  if(d.pl){plSet(t);live();return}
   if(d.p==='specsText'){var p0=find(d.id);p0.specs=t.value.split('\n').map(function(l){var i=l.indexOf(':');return i>0?{k:l.slice(0,i).trim(),v:l.slice(i+1).trim()}:null}).filter(Boolean)}
   else if(d.p){var p=find(d.id);p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false}
   else if(d.s){s[d.s]=d.s==='ticker'?t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean):t.value}
@@ -204,6 +235,7 @@ function wireEd(){
   if(d.gup&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var p=find(d.gup);(p.photos=p.photos||[]).push(url);live();paintEd()})})}
   if((d.up||d.upk)&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],d.upk==='storePhoto'?1600:1100,function(du){uploadImg(du,function(url){if(d.up){var p=find(d.up);p.photo=url;p.sample=false}else S()[d.upk]=url;live();paintEd()})},d.upk==='storePhoto')}});
  ed.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;var d=t.dataset,s=S();
+  if(plClick(t))return;
   if(t.id==='ed-close'){editing=false;ed.remove();ed=null;render();if(dirty)toast('Not saved yet. Open Edit site and tap Save.');return}
   if(t.id==='ed-cancel'){state=JSON.parse(saved);dirty=false;paintEd();render();return}
   if(t.id==='ed-save')return save(t);
@@ -246,7 +278,7 @@ function save(btn){
   saved=JSON.stringify(state);dirty=false;var st=document.getElementById('ed-state');if(st)st.textContent='Saved. Customers see it now.';toast('Saved. The live site is updated.')})}
 function loadRemote(){if(!CFG.url)return Promise.resolve();
  return fetch(CFG.url+'/rest/v1/site?id=eq.main&select=data',{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}).then(function(r){return r.json()}).then(function(rows){
-  if(rows&&rows[0]&&rows[0].data&&!dirty){state=rows[0].data;saved=JSON.stringify(state);render();if(ed)paintEd()}}).catch(function(){})}
+  if(rows&&rows[0]&&rows[0].data&&!dirty){state=withPL(rows[0].data);saved=JSON.stringify(state);render();if(ed)paintEd()}}).catch(function(){})}
 /* owner login (admin page only) */
 function loginBox(msg){var b=document.getElementById('lg');if(!b){b=document.createElement('div');b.id='lg';b.className='lg';document.body.appendChild(b)}
  b.innerHTML='<form class="lgf" id="lgf"><span class="mk">'+mark('currentColor','url(#epg)')+'</span><p class="lbl">Owner only</p><h3 class="disp">Edit Estilo Pinas</h3>'+

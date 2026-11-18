@@ -378,3 +378,6 @@ footer .badge{max-width:300px;filter:drop-shadow(-12px 18px 16px var(--shadow))}
 @media (max-width:700px){.foot-tx{justify-items:start;text-align:left}}
 /* spotlight & visit pick up the mesh softly */
 .spot{background:var(--bg)}
+
+/* price list editor */
+.pl-cat{border:1px solid rgba(0,0,0,.12);border-radius:14px;padding:12px;display:grid;gap:10px}.pl-var{border-top:1px dashed rgba(0,0,0,.18);padding-top:8px;display:grid;gap:6px}.ed .small a{color:inherit}
