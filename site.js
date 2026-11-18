@@ -195,7 +195,7 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
  P.categories.forEach(function(c,ci){
   h+='<div class="pl-cat"><div class="f"><label>Category name</label><input data-pl="cname" data-c="'+ci+'" value="'+esc(c.name)+'"></div>';
   c.items.forEach(function(it,ii){var k='data-c="'+ci+'" data-i="'+ii+'"';
-   h+='<div class="erow">'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Extra details (optional)','data-pl="spec" '+k,it.spec||'','e.g. Wi-Fi · Space Black');
+   h+='<div class="erow">'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Details (specs)','data-pl="spec" '+k,it.spec||'','e.g. 6.9-inch display · A20 Pro chip')+f('Colors','data-pl="colors" '+k,it.colors||'','e.g. Black, Silver');
    it.variants.forEach(function(v,vi){var kv=k+' data-v="'+vi+'"';
     h+='<div class="pl-var"><div class="two">'+f('Storage / option','data-pl="vlabel" '+kv,v.label,'256GB')+f('Price (₱)','data-pl="vprice" inputmode="numeric" '+kv,v.price,'Blank = message for price')+'</div>'+
      '<div class="tools"><label class="chk"><input type="checkbox" data-pl="vavail" '+kv+(v.status!=='unavailable'?' checked':'')+'> Available</label>'+(it.variants.length>1?'<button class="del" data-plvdel="'+ci+','+ii+','+vi+'">Remove option</button>':'')+'</div></div>'});
@@ -204,7 +204,7 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
  h+='<button class="addrow" id="pl-addcat">+ Add category</button>'+f('Reminder label','data-pl="noteLabel"',P.noteLabel||'')+f('Reminder heading','data-pl="noteTitle"',P.noteTitle||'')+f('Reminder text (one paragraph per line)','data-pl="note"',(P.note||[]).join('\n'),'',1)+'</div></details>';
  return h}
 function plSet(t){var d=t.dataset,P=state.priceList,c=P.categories[+d.c],it=c&&c.items[+d.i],v=it&&it.variants[+d.v];
- if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='vlabel')v.label=t.value;
+ if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='colors')it.colors=t.value;else if(d.pl==='vlabel')v.label=t.value;
  else if(d.pl==='vprice'){var x=t.value.replace(/[^0-9]/g,'');v.price=x?Number(x):''}else if(d.pl==='vavail')v.status=t.checked?'available':'unavailable';
  else if(d.pl==='note')P.note=t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean);else P[d.pl]=t.value;
  P.updated=today()}

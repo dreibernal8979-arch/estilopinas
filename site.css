@@ -5,7 +5,7 @@
   --grad:linear-gradient(90deg,#ff4f9a,#8a5cff 50%,#3d8bff);
   --box:#ffffff; --box-edge:#dedfe2; --scr1:#cdd6e6; --scr2:#ebdfca;
   --ok:#2f8a55; --warn:#a26b00; --off:#9a9ca2; --pre:#4b6fd6;
-  --disp:"Archivo",system-ui,sans-serif; --body:"Archivo",system-ui,sans-serif;
+  --disp:"Unbounded","Archivo",system-ui,sans-serif; --body:"Archivo",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1012; --bg2:#17181b; --ink:#f1f1ef; --muted:#8e9198; --faint:#4a4c52; --line:#26272b;
@@ -330,7 +330,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .gthumb button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;padding:0;border-radius:50%;font-size:12px;line-height:1}
 
 /* ===== Estilo Pinas brand identity (v5) ===== */
-:root{--disp:"Anton","Archivo",system-ui,sans-serif;--grad:linear-gradient(90deg,#ff3d8b,#8a5cff 50%,#3d8bff);--pink:#ff3d8b;--violet:#8a5cff;--blue:#3d8bff;--ember:#ff6a3d}
+:root{--disp:"Unbounded","Archivo",system-ui,sans-serif;--grad:linear-gradient(90deg,#ff3d8b,#8a5cff 50%,#3d8bff);--pink:#ff3d8b;--violet:#8a5cff;--blue:#3d8bff;--ember:#ff6a3d}
 .disp{font-family:var(--disp);font-weight:400;font-stretch:100%;letter-spacing:.005em;line-height:.95}
 .hero h1{font-size:clamp(44px,7.2vw,104px);max-width:none}
 .hero h1 span:nth-child(2){-webkit-text-stroke:1.6px var(--ink);color:transparent}
@@ -390,3 +390,12 @@ footer .badge{max-width:300px;filter:drop-shadow(-12px 18px 16px var(--shadow))}
  .tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
  .tabbar a[aria-current="page"]{color:#0e0f11}
  body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}}
+/* logo-matched display type: Unbounded (the base of the Estilo Pinas wordmark) */
+.disp,.stats dt,.promise b,.pv-pr,.focus .nm,.pc .nm{font-weight:800;letter-spacing:-.02em}
+.logo .wm{font-weight:800;font-size:14px;letter-spacing:0}
+.hero h1{font-size:clamp(30px,6.4vw,92px);line-height:.98}
+.hero h1 span:nth-child(2){-webkit-text-stroke:1.4px var(--ink)}
+.focus .nm{font-size:18px}.pc .nm{font-size:15px}.stats dt{font-size:26px}.pv-pr{font-size:28px}
+@media (max-width:520px){.hero h1{font-size:clamp(26px,8.6vw,40px)}}
+.hero h1 span:nth-child(2){-webkit-text-stroke:0;color:#a3a4aa}
+@media (max-width:520px){.seal-st{display:none}}

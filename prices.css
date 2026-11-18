@@ -1,6 +1,6 @@
 /* Estilo Pinas — price list page. Black, white, soft gray; the gradient only as a small accent. */
 :root{--ink:#0e0f11;--ink2:#2b2c31;--mute:#6b6c73;--line:#e3e3e0;--soft:#f4f4f2;--paper:#fff;--grad:linear-gradient(90deg,#ff3d8b,#8a5cff 50%,#3d7bff);
- --disp:"Titan One","Arial Rounded MT Bold",system-ui,sans-serif;--sans:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+ --disp:"Unbounded","Arial Black",system-ui,sans-serif;--sans:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
 body{margin:0;background:var(--soft);color:var(--ink);font:500 16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0)}
 a{color:inherit}img{display:block}
@@ -84,3 +84,12 @@ a{color:inherit}img{display:block}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .card-acts{display:flex;flex-wrap:wrap;gap:4px 18px}
+
+/* logo-matched display type (Unbounded = the base of the Estilo Pinas wordmark) */
+.disp,.pr,.rc-tot b,.rc-item h3,.opt h2,.okk .ref{font-weight:800;letter-spacing:-.02em}
+.hero h1{font-size:clamp(46px,9vw,112px);line-height:.92}
+.cat-h h2{font-size:clamp(32px,5vw,54px)}
+.pr{font-size:clamp(22px,2.6vw,28px)}
+.contact h2{font-size:clamp(30px,4.4vw,50px)}
+.cols{margin:3px 0 0;font-size:13.5px;color:var(--ink2)}.cols span{font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:var(--mute);margin-right:4px}
+.spec{font-size:13.5px}

@@ -15,34 +15,34 @@ window.EP_PRICES_DEFAULT = {
   ],
   "categories": [
     { "id": "iphone", "name": "iPhone", "items": [
-      { "id": "iphone-air", "model": "iPhone Air", "spec": "", "variants": [
+      { "id": "iphone-air", "model": "iPhone Air", "spec": "6.5-inch display · A19 Pro chip · 48MP Fusion camera", "colors": "Sky Blue, Light Gold, Cloud White, Space Black", "variants": [
         { "label": "256GB", "price": 58500, "status": "available" } ] },
-      { "id": "iphone-18-pro", "model": "iPhone 18 Pro", "spec": "", "variants": [
+      { "id": "iphone-18-pro", "model": "iPhone 18 Pro", "spec": "6.3-inch display · A20 Pro chip · three 48MP cameras + 8x Telephoto", "colors": "Black, Silver, Glacier, Burgundy", "variants": [
         { "label": "256GB", "price": 87000, "status": "available" } ] },
-      { "id": "iphone-18-pro-max", "model": "iPhone 18 Pro Max", "spec": "", "variants": [
+      { "id": "iphone-18-pro-max", "model": "iPhone 18 Pro Max", "spec": "6.9-inch display · A20 Pro chip · three 48MP cameras + 8x Telephoto", "colors": "Black, Silver, Glacier, Burgundy", "variants": [
         { "label": "256GB", "price": 94000, "status": "available" },
         { "label": "512GB", "price": 115000, "status": "available" } ] },
-      { "id": "iphone-17", "model": "iPhone 17", "spec": "", "variants": [
+      { "id": "iphone-17", "model": "iPhone 17", "spec": "6.3-inch display · A19 chip · 48MP Main + 48MP Ultra Wide", "colors": "Black, Lavender, Mist Blue, Sage, White", "variants": [
         { "label": "256GB", "price": 62000, "status": "available" },
         { "label": "512GB", "price": 76000, "status": "available" } ] },
-      { "id": "iphone-17-pro", "model": "iPhone 17 Pro", "spec": "", "variants": [
+      { "id": "iphone-17-pro", "model": "iPhone 17 Pro", "spec": "6.3-inch display · A19 Pro chip · three 48MP cameras, up to 8x optical-quality zoom", "colors": "Cosmic Orange, Deep Blue, Silver", "variants": [
         { "label": "256GB", "price": 73000, "status": "available" } ] },
-      { "id": "iphone-17-pro-max", "model": "iPhone 17 Pro Max", "spec": "", "variants": [
+      { "id": "iphone-17-pro-max", "model": "iPhone 17 Pro Max", "spec": "6.9-inch display · A19 Pro chip · three 48MP cameras, up to 8x optical-quality zoom", "colors": "Cosmic Orange, Deep Blue, Silver", "variants": [
         { "label": "256GB", "price": 76500, "status": "available" },
         { "label": "512GB", "price": 88500, "status": "available" },
         { "label": "1TB", "price": 104000, "status": "available" } ] }
     ]},
     { "id": "macbook", "name": "MacBook", "items": [
-      { "id": "macbook-neo", "model": "MacBook Neo", "spec": "", "variants": [
+      { "id": "macbook-neo", "model": "MacBook Neo", "spec": "13-inch display · A18 Pro chip · 8GB memory · up to 16 hrs video", "colors": "Silver, Blush, Citrus, Indigo", "variants": [
         { "label": "512GB", "price": 53000, "status": "available" } ] },
-      { "id": "macbook-air-m5", "model": "MacBook Air M5", "spec": "", "variants": [
+      { "id": "macbook-air-m5", "model": "MacBook Air M5", "spec": "13.6-inch Liquid Retina · M5 chip, 10-core CPU · 16GB memory · up to 18 hrs video", "colors": "Sky Blue, Silver, Starlight, Midnight", "variants": [
         { "label": "13-inch | 16GB RAM | 512GB SSD", "price": 82000, "status": "available" } ] }
     ]},
     { "id": "ipad", "name": "iPad", "items": [
-      { "id": "ipad-air-m4", "model": "iPad Air M4", "spec": "", "variants": [
+      { "id": "ipad-air-m4", "model": "iPad Air M4", "spec": "M4 chip · 12GB memory · Liquid Retina display · Apple Pencil Pro support", "colors": "Blue, Purple, Starlight, Space Gray", "variants": [
         { "label": "13-inch | 128GB", "price": 58000, "status": "available" },
         { "label": "11-inch | 128GB", "price": 45500, "status": "available" } ] },
-      { "id": "ipad-11-a16", "model": "iPad 11th Generation A16", "spec": "", "variants": [
+      { "id": "ipad-11-a16", "model": "iPad 11th Generation A16", "spec": "11-inch Liquid Retina display · A16 chip · 12MP front and back cameras", "colors": "Blue, Pink, Yellow, Silver", "variants": [
         { "label": "128GB", "price": 28000, "status": "available" },
         { "label": "256GB", "price": 36000, "status": "available" } ] }
     ]}

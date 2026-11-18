@@ -30,7 +30,7 @@ function render(){
   h+='<section class="cat" id="'+slug(c.id||c.name)+'"><div class="cat-h"><h2 class="disp">'+esc(c.name)+'</h2><span class="cnt">'+n+' option'+(n===1?'':'s')+'</span></div><div class="grid">';
   c.items.forEach(function(it){
    var vs=(it.variants||[]),avail=vs.some(function(v){return v.status!=='unavailable'});
-   h+='<article class="card'+(avail?'':' off')+'"><div class="card-h"><h3>'+esc(it.model)+'</h3>'+(it.spec?'<p class="spec">'+esc(it.spec)+'</p>':'')+'</div><ul class="vars">'+
+   h+='<article class="card'+(avail?'':' off')+'"><div class="card-h"><h3>'+esc(it.model)+'</h3>'+(it.spec?'<p class="spec">'+esc(it.spec)+'</p>':'')+(it.colors?'<p class="cols"><span>Colors</span> '+esc(it.colors)+'</p>':'')+'</div><ul class="vars">'+
     vs.map(function(v){var off=v.status==='unavailable';
      return '<li class="'+(off?'off':'')+'"><span class="lab">'+esc(v.label||'Price')+'</span><span class="lead-dots" aria-hidden="true"></span>'+(off?'<span class="na">Unavailable</span>':'<span class="pr">'+money(v.price)+'</span>')+'</li>'}).join('')+
     '</ul><div class="card-acts"><a class="ask" href="/pay?m='+encodeURIComponent(it.id)+(vs.length===1?'&v='+encodeURIComponent(vs[0].label||''):'')+'#calc-sec">Card / split price →</a><a class="ask" href="'+esc(msgr('Hi Estilo Pinas! Is the '+it.model+(vs.length===1&&vs[0].label?' '+vs[0].label:'')+' available? I saw it on your price list.'))+'" target="_blank" rel="noopener">Ask for stock <span aria-hidden="true">→</span></a></div></article>'});
