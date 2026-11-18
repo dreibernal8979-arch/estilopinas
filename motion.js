@@ -12,7 +12,7 @@ document.documentElement.classList.toggle('lowfx',!!LOW);document.documentElemen
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
 /* ---------- hero: CSS-3D phone ---------- */
-function hero(el,m){if(!el)return;
+function hero(el,m,pops){if(!el)return;pops=(pops||[]).filter(function(x){return x&&x.photo}).slice(0,3);
  var specs=m&&m.spec?m.spec.split('·').map(function(x){return x.trim()}).filter(Boolean).slice(0,3):[];
  el.innerHTML='<div class="h3-stage" aria-hidden="true"><div class="h3-glow"></div><div class="h3-ring r1"></div><div class="h3-ring r2"></div>'+
   '<div class="h3-orbit">'+[0,1,2,3,4,5].map(function(i){return '<i style="--k:'+i+'"></i>'}).join('')+'</div>'+
@@ -20,11 +20,12 @@ function hero(el,m){if(!el)return;
    '<div class="f front"><div class="scr"><div class="isl"></div><div class="wall"></div><img src="/wordmark-white.svg" alt=""><div class="sweep"></div></div></div>'+
    '<div class="f back"><div class="cam"><b></b><b></b><b></b><s></s></div><img src="/logo.svg" alt="" class="bl"></div>'+
    '<div class="f side l"></div><div class="f side r"></div><div class="f side t"></div><div class="f side b"></div></div><div class="h3-shadow"></div></div>'+
+  pops.map(function(x,i){return '<span class="h3-pop p'+i+'"><img src="'+esc(x.photo)+'" alt="" decoding="async" onerror="this.parentNode.remove()"></span>'}).join('')+
   specs.map(function(s,i){return '<span class="h3-chip c'+i+'">'+esc(s)+'</span>'}).join('')+'</div>';
  var p=el.querySelector('#h3p'),rx=0,ry=0,tx=0,ty=0,raf=0,t0=performance.now(),vis=true;
  if(RM){p.style.transform='rotateY(-22deg) rotateX(6deg)';return}
  function loop(t){var e=(t-t0)/1000;rx+=(tx-rx)*.06;ry+=(ty-ry)*.06;
-  p.style.transform='rotateX('+(8+rx).toFixed(2)+'deg) rotateY('+((e*24)%360+ry).toFixed(2)+'deg)';raf=vis?requestAnimationFrame(loop):0}
+  p.style.transform='rotateX('+(8+rx).toFixed(2)+'deg) rotateY('+((e*24)%360+ry).toFixed(2)+'deg)';el.style.setProperty('--mx',(ry/30).toFixed(3));el.style.setProperty('--my',(rx/16).toFixed(3));raf=vis?requestAnimationFrame(loop):0}
  el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect();ty=((e.clientX-r.left)/r.width-.5)*30;tx=-((e.clientY-r.top)/r.height-.5)*16});
  el.addEventListener('pointerleave',function(){tx=ty=0});
  if('IntersectionObserver' in window)new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop)}).observe(el);
@@ -96,5 +97,44 @@ function flip(fromEl,toEl){if(RM||!fromEl||!toEl)return;var a=fromEl.getBounding
  var sx=a.width/b.width,sy=a.height/b.height,s=Math.min(sx,sy);toEl.style.transformOrigin='0 0';
  toEl.animate([{transform:'translate('+(a.left-b.left)+'px,'+(a.top-b.top)+'px) scale('+s+')',opacity:.6},{transform:'none',opacity:1}],{duration:520,easing:'cubic-bezier(.2,.8,.2,1)'})}
 
-window.EPM={hero:hero,showroom:showroom,reveal:reveal,tilt:tilt,tween:tween,flip:flip,RM:RM,LOW:LOW};
+/* ---------- floating curved rail (hover spotlight + shuffle) ----------
+   Items ride a curved arc: each one's offset from the centre sets its lift, tilt and scale every scroll frame.
+   Hover/focus spotlights one gadget and dims the rest. Shuffle re-sorts the array and FLIP-animates to the new spots. */
+function rail(el,items,o){o=o||{};if(!el||!items.length)return null;
+ var order=items.map(function(_,i){return i});
+ el.innerHTML='<div class="fr-track" tabindex="0" aria-label="Floating gadgets. Scroll sideways or use the arrow buttons.">'+
+  items.map(function(m,i){return '<button type="button" class="fr-it" data-i="'+i+'" style="--d:'+((i*0.37)%2).toFixed(2)+'s" aria-label="'+esc(m.model)+'"><span class="fr-arc"><span class="fr-fl">'+o.render(m)+'</span><i class="gs"></i></span>'+(o.label?'<span class="fr-lb">'+o.label(m)+'</span>':'')+'</button>'}).join('')+
+  '</div><div class="fr-ui"><button type="button" class="sr-arw" data-fr="-1" aria-label="Previous">←</button><button type="button" class="btn ghost" data-fr="shuffle">Shuffle <span aria-hidden="true">⤨</span></button><button type="button" class="sr-arw" data-fr="1" aria-label="Next">→</button></div>';
+ var tr=el.querySelector('.fr-track'),nodes=[].slice.call(tr.children),raf=0;
+ function place(){raf=0;var r=tr.getBoundingClientRect(),cx=r.left+r.width/2,half=r.width/2||1;
+  nodes.forEach(function(n){var b=n.getBoundingClientRect(),d=Math.max(-1.4,Math.min(1.4,(b.left+b.width/2-cx)/half)),a=n.firstChild;
+   a.style.transform='translateY('+(d*d*58).toFixed(1)+'px) rotate('+(d*7).toFixed(2)+'deg) scale('+(1-Math.min(1,Math.abs(d))*.22).toFixed(3)+')';
+   n.style.zIndex=String(100-Math.round(Math.abs(d)*50))})}
+ function q(){if(!raf)raf=requestAnimationFrame(place)}
+ tr.addEventListener('scroll',q,{passive:true});window.addEventListener('resize',q);
+ /* spotlight */
+ function hot(n){nodes.forEach(function(x){x.classList.toggle('hot',x===n)});tr.classList.toggle('spot',!!n)}
+ tr.addEventListener('pointerover',function(e){if(e.pointerType==='mouse'){var n=e.target.closest('.fr-it');if(n)hot(n)}});
+ tr.addEventListener('pointerleave',function(){hot(null)});
+ tr.addEventListener('focusin',function(e){var n=e.target.closest('.fr-it');if(n)hot(n)});tr.addEventListener('focusout',function(){hot(null)});
+ /* mouse drag-to-scroll (touch already scrolls natively) */
+ var dn=null,moved=false;
+ tr.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button)return;dn={x:e.clientX,s:tr.scrollLeft};moved=false;tr.classList.add('drag')});
+ window.addEventListener('pointermove',function(e){if(!dn)return;var dx=e.clientX-dn.x;if(Math.abs(dx)>6)moved=true;if(moved)tr.scrollLeft=dn.s-dx});
+ window.addEventListener('pointerup',function(){if(dn){dn=null;tr.classList.remove('drag');setTimeout(function(){moved=false},0)}});
+ tr.addEventListener('click',function(e){var n=e.target.closest('.fr-it');if(!n||moved){e.preventDefault();return}o.open&&o.open(items[+n.dataset.i],n)});
+ function step(k){var w=nodes[0].getBoundingClientRect().width+parseFloat(getComputedStyle(tr).columnGap||0);tr.scrollBy({left:k*w,behavior:RM?'auto':'smooth'})}
+ function shuffle(){var first=nodes.map(function(n){return n.getBoundingClientRect()});
+  for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=order[i];order[i]=order[j];order[j]=t}
+  order.forEach(function(k){tr.appendChild(nodes[k])});place();
+  if(!RM)nodes.forEach(function(n,i){var b=n.getBoundingClientRect(),a=first[i],dx=a.left-b.left;if(dx)n.animate([{transform:'translateX('+dx+'px)'},{transform:'none'}],{duration:620,easing:'cubic-bezier(.2,.8,.2,1)'})});
+  q()}
+ el.querySelector('.fr-ui').addEventListener('click',function(e){var b=e.target.closest('[data-fr]');if(!b)return;if(b.dataset.fr==='shuffle')shuffle();else step(+b.dataset.fr)});
+ if('ResizeObserver' in window)new ResizeObserver(q).observe(tr);
+ [].forEach.call(el.querySelectorAll('img'),function(im){if(!im.complete)im.addEventListener('load',q,{once:true})});
+ /* start near the middle so the arc reads on first view */
+ requestAnimationFrame(function(){tr.scrollLeft=(tr.scrollWidth-tr.clientWidth)/2;place();el.classList.add('ready')});
+ return {shuffle:shuffle,order:function(){return order.slice()}}}
+
+window.EPM={hero:hero,showroom:showroom,rail:rail,reveal:reveal,tilt:tilt,tween:tween,flip:flip,RM:RM,LOW:LOW};
 })();

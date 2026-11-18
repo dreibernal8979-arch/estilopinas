@@ -130,3 +130,52 @@ html.lowfx .h3-chip{backdrop-filter:none;-webkit-backdrop-filter:none;background
  .h3-glow,.h3-orbit,.h3-float,.h3-phone .sweep,.h3-shadow,.h3-chip,.scrollcue i::after{animation:none!important;opacity:1}
  .drawer .pn,.drawer .bg,.sr{transition:none}.ov{animation:none}}
 .dev{height:70%;margin-bottom:14px}.dev small{bottom:-20px;font-size:9px}
+/* ---------- floating product photos (v2) ---------- */
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes bobsh{0%,100%{transform:translateX(-50%) scale(1);opacity:.9}50%{transform:translateX(-50%) scale(.78);opacity:.5}}
+.gs{position:absolute;left:50%;bottom:2%;width:56%;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(43,43,43,.38),transparent);transform:translateX(-50%);animation:bobsh 5s ease-in-out infinite;animation-delay:var(--d,0s);pointer-events:none}
+/* showroom: frameless — the PNG floats on the page */
+.sr-card{background:transparent;border:0;box-shadow:none;padding:0}
+.sr-item.on .sr-card{box-shadow:none}
+.sr-card .ph{background:transparent;overflow:visible;position:relative}
+.sr-card .fl{display:grid;place-items:center;width:100%;height:100%;animation:bob 5s ease-in-out infinite;animation-delay:var(--d,0s)}
+.sr-card .ph img{width:86%;height:86%;filter:drop-shadow(0 24px 22px rgba(43,43,43,.28))}
+.sr-card .nm{text-align:center;opacity:0;transition:opacity .3s ease}.sr-item.on .sr-card .nm{opacity:1}
+.sr-item.on .sr-card .ph img{filter:drop-shadow(0 30px 28px rgba(43,43,43,.34))}
+/* cards & product page: spotlight background + float */
+.pc2 .ph{background:radial-gradient(70% 60% at 50% 42%,#fff,var(--cream));position:relative;overflow:visible}
+.pc2 .ph .fl{display:grid;place-items:center;width:100%;height:100%;animation:bob 5.5s ease-in-out infinite;animation-delay:var(--d,0s)}
+.pc2 .ph .gs{bottom:6%;width:46%}
+.pd-ph{background:radial-gradient(65% 55% at 50% 45%,#fff,transparent 72%)}
+.pd-ph img{animation:pdIn .6s cubic-bezier(.2,.8,.2,1) both,bob 6s ease-in-out .6s infinite}
+.ov-ph img{animation:bob 6s ease-in-out infinite}
+/* hero: real product photos floating around the 3D phone */
+.h3-pop{position:absolute;pointer-events:none;z-index:0;transform:translate(calc(var(--mx,0)*var(--z)*1px),calc(var(--my,0)*var(--z)*1px))}
+.h3-pop img{display:block;width:100%;filter:drop-shadow(0 26px 24px rgba(0,0,0,.45));animation:bob 6.5s ease-in-out infinite;opacity:0;animation-fill-mode:both}
+.cine .h3-pop img{animation:popIn .9s cubic-bezier(.2,.8,.2,1) both,bob 6.5s ease-in-out .9s infinite}
+@keyframes popIn{from{opacity:0;transform:translateY(30px) scale(.9)}to{opacity:1;transform:none}}
+.h3-pop.p0{--z:-28;width:44%;left:-10%;bottom:4%}.h3-pop.p0 img{animation-delay:.5s,1.4s}
+.h3-pop.p1{--z:-18;width:34%;right:-6%;top:6%}.h3-pop.p1 img{animation-delay:.7s,1.6s}
+.h3-pop.p2{--z:22;width:24%;right:2%;bottom:0}.h3-pop.p2 img{animation-delay:.9s,1.8s}
+.h3-float{position:relative;z-index:1}
+@media (max-width:520px){.h3-pop.p0{width:40%;left:-4%}.h3-pop.p1{width:30%;right:-2%}.h3-pop.p2{display:none}}
+/* floating curved rail */
+.fr{opacity:0;transition:opacity .6s ease}.fr.ready{opacity:1}
+.fr-track{display:flex;gap:clamp(4px,1vw,14px);overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:20px calc(50% - clamp(150px,17vw,210px)/2) 96px;scrollbar-width:none;-webkit-overflow-scrolling:touch;outline:none;cursor:grab;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.fr-track::-webkit-scrollbar{display:none}.fr-track.drag{cursor:grabbing;scroll-snap-type:none;user-select:none}
+.fr-track:focus-visible{box-shadow:inset 0 0 0 3px #8a5cff;border-radius:var(--r)}
+.fr-it{flex:none;width:clamp(150px,17vw,210px);scroll-snap-align:center;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;text-align:center;position:relative;transition:opacity .35s ease,filter .35s ease}
+.fr-arc{display:block;position:relative;aspect-ratio:1;will-change:transform;transition:transform .12s linear}
+.fr-fl{display:grid;place-items:center;width:100%;height:100%;animation:bob 5s ease-in-out infinite;animation-delay:var(--d,0s)}
+.fr-fl img{width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 22px 20px rgba(43,43,43,.26));pointer-events:none;-webkit-user-drag:none;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.fr-fl .dev{height:88%}
+.fr-lb{display:block;margin-top:4px;font:600 12.5px/1.3 var(--sans);transition:transform .35s ease}.fr-lb b{display:block;font:400 15px var(--disp);margin-top:2px}
+.fr-track.spot .fr-it{opacity:.35;filter:grayscale(.6) blur(1px)}
+.fr-track.spot .fr-it.hot{opacity:1;filter:none}
+.fr-it.hot .fr-fl img{transform:scale(1.12)}.fr-it.hot .fr-lb{transform:translateY(8px)}
+.fr-it:focus-visible{outline:3px solid #8a5cff;outline-offset:4px;border-radius:18px}
+.fr-ui{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:-56px;position:relative;z-index:2}
+html.lowfx .fr-track.spot .fr-it{filter:none}
+html.rm .gs,html.rm .fl,html.rm .fr-fl,html.rm .h3-pop img,html.rm .pd-ph img,html.rm .ov-ph img,html.rm .pc2 .ph .fl,html.rm .sr-card .fl{animation:none!important;opacity:1}
+html.rm .fr-arc{transition:none}
+html.lowfx .gs{animation:none}html.lowfx .pc2 .ph .fl{animation:none}
