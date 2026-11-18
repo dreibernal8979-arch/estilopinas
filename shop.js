@@ -10,7 +10,7 @@ var PAY_DEFAULT={cardFee:5,highValue:100000,
  feeCashNote:'Many customers pay the 5% fee in cash and swipe only the item price. Same total, lighter on your card.',
  pointsNote:'Have credit card reward points? Some banks let you use points to cover charges like this. Check your bank\'s rewards program.',
  faq:[]};
-var SET_DEFAULT={fb:'https://www.facebook.com/share/1aQGnn61Tp/',messenger:'',phone:'0995 883 1899',address:'06 Macapagal St., Brgy. Lakandula, Mabalacat, Pampanga',hours:'By appointment',shopName:'Estilo Pinas'};
+var SET_DEFAULT={fb:'https://www.facebook.com/share/1FWGJJsKv8/',messenger:'',phone:'0995 883 1899',address:'06 Macapagal St., Brgy. Lakandula, Mabalacat, Pampanga',hours:'By appointment',shopName:'Estilo Pinas'};
 
 /* ---------- helpers ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -53,12 +53,13 @@ function receipt(it,q,o){o=o||{};var lines=quoteLines(q);
 
 /* ---------- shared layout ---------- */
 function header(){var a=function(h,t,k){return '<a href="'+h+'"'+(PAGE===k?' aria-current="page"':'')+'>'+t+'</a>'};
- return '<header class="top"><div class="wrap top-in"><a class="brand" href="/" aria-label="Estilo Pinas home"><img src="/wordmark.svg" alt="Estilo Pinas" width="112" height="52"></a>'+
- '<nav class="top-links">'+a('/','Shop','home')+a('/prices','Price list','prices')+a('/pay','Payment guide','pay')+a('/ask','Ask us','ask')+'</nav>'+
- '<a class="btn sm-hide" href="'+esc(msgr('Hi Estilo Pinas! I have a question.'))+'" target="_blank" rel="noopener">Message us</a></div></header>'}
+ return '<a class="skip" href="#main">Skip to content</a><header class="top"><div class="wrap top-in"><a class="brand" href="/" aria-label="Estilo Pinas home"><img src="/wordmark.svg" alt="Estilo Pinas" width="92" height="43"></a>'+
+ '<nav class="top-links" aria-label="Main">'+a('/gadgets','Gadgets','gadgets')+a('/payment-guide','Payment guide','pay')+a('/how-to-order','How to order','howto')+a('/track-order','Track order','track')+a('/contact','Contact','contact')+'</nav>'+
+ '<a class="btn" href="/ask">Ask us</a></div></header>'}
 function tabbar(){var a=function(h,t,k,ic){return '<a href="'+h+'"'+(PAGE===k?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+ic+'</svg><span>'+t+'</span></a>'};
- return '<nav class="tabbar" aria-label="Shop menu">'+a('/','Shop','home','<rect x="6" y="2.5" width="12" height="19" rx="3.2"/>')+a('/prices','Prices','prices','<path d="M5 6h14M5 12h14M5 18h9"/>')+a('/pay','Payment','pay','<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10.5h18"/>')+a('/ask','Ask','ask','<path d="M5 5h14v10H10l-5 4z"/>')+'</nav>'}
-function footer(){var s=S();return '<footer class="foot"><div class="wrap foot-in"><img src="/wordmark.svg" alt="" width="70" height="33"><span>Brand new &amp; sealed since 2014 · '+esc(s.address)+'</span><a class="flink" href="'+tel()+'">Call / Viber '+esc(s.phone)+'</a></div></footer>'}
+ return '<nav class="tabbar" aria-label="Shop menu">'+a('/','Home','home','<path d="M4 11l8-7 8 7v9H4z"/>')+a('/gadgets','Gadgets','gadgets','<rect x="6" y="2.5" width="12" height="19" rx="3.2"/>')+a('/payment-guide','Payment','pay','<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10.5h18"/>')+a('/ask','Ask us','ask','<path d="M5 5h14v10H10l-5 4z"/>')+'</nav>'}
+function footer(){var s=S();return '<footer class="foot"><div class="wrap foot-in"><img src="/wordmark.svg" alt="" width="64" height="30"><span>Legit trusted seller since 2014 · '+esc(s.address)+'</span>'+
+ '<nav class="fnav" aria-label="Footer"><a href="/prices">Price list</a><a href="/how-to-order">How to order</a><a href="/track-order">Track order</a><a href="/contact">Contact</a><a href="'+esc(S().fb)+'" target="_blank" rel="noopener">Facebook</a></nav></div></footer>'}
 function shell(main){root.innerHTML=header()+'<main id="main">'+main+'</main>'+footer()+tabbar()}
 
 /* ---------- data ---------- */
@@ -131,12 +132,12 @@ function copy(t,msg){try{navigator.clipboard.writeText(t).then(function(){toast(
 function pageQuote(){var o=qs();
  function show(it,q,meta){shell('<section class="wrap qwrap"><p class="eyebrow"><span class="dot"></span>Your quotation</p>'+receipt(it,q,{anim:true,customer:meta.customer,code:meta.code,note:meta.note,title:meta.title})+
   '<div class="calc-acts"><a class="btn" href="/order?'+esc(meta.orderQS)+'">Order this</a><a class="btn ghost" href="'+esc(msgr('Hi Estilo Pinas! About my quotation'+(meta.code?' '+meta.code:'')+': '+(it?it.name:'')+' — total '+php(q.total)+'.'))+'" target="_blank" rel="noopener">Message us</a></div>'+
-  '<p class="mini center">Want to try another payment mix? <a href="/pay?'+esc(meta.orderQS)+'#calc-sec">Open the calculator</a></p></section>')}
+  '<p class="mini center">Want to try another payment mix? <a href="/payment-guide?'+esc(meta.orderQS)+'#calc-sec">Open the calculator</a></p></section>')}
  if(o.c){rpc('get_quote',{p_code:o.c}).then(function(r){if(!r||!r.price)throw 0;var it=r.m?findItem(r.m,r.v):null;var q=quote(r.price,r.pay||'cash',r.card,r.fee);
    show(it&&it.price===r.price?it:{cat:it?it.cat:'Item',model:r.title||(it?it.model:'Quoted item'),label:r.title?'':(r.v||''),name:r.title||''},q,{customer:r.name,code:o.c,note:r.note,orderQS:toQS({q:o.c})})})
   .catch(function(){shell('<section class="wrap qwrap"><h1 class="disp">Quote not found</h1><p class="lead">This link may have expired. Message us and we will send a fresh one.</p><a class="btn" href="'+esc(msgr('Hi Estilo Pinas! My quotation link is not opening.'))+'">Message us</a></section>')});return}
  var st=stFromQS(),it=byKey(st.key),price=st.key==='custom'?num(st.custom):it?it.price:0;
- if(!price){location.replace('/pay');return}
+ if(!price){location.replace('/payment-guide');return}
  show(it,quote(price,st.method,st.card,st.feeBy),{customer:o.name,orderQS:stToQS(st)})}
 
 /* ---------- PAGE: order request (/order) ---------- */
@@ -204,7 +205,7 @@ function pageAsk(){var s=S(),pay=P(),L=items().filter(function(x){return x.price
   bot('Based sa sagot niyo, ito po ang suggestion ko: <b>'+esc(pick.name)+'</b> — '+php(pick.price)+' (dealer price).<br>'+why+(alt?'<br>Alternative: '+esc(alt.name)+' — '+php(alt.price)+'.':'')+'<br>'+payLine(pick.price)+'<br><span class="mini">Prices follow dealer availability. Ise-confirm po namin ang stock bago kayo magbayad.</span>',
    [['Get quotation','q:'+pick.key]].concat(alt?[['Quote '+alt.name,'q:'+alt.key]]:[]).concat([['Talk to Rodz','human'],['Start over','restart']]),800)}
  function payLine(price){var f=fee();if(/card/i.test(need.pay||'')&&!/split/i.test(need.pay)){return 'Kung card: '+php(price)+' + '+f+'% = '+php(price*(1+f/100))+'. Pwede niyo pong i-cash ang '+f+'% ('+php(price*f/100)+') at i-swipe lang ang '+php(price)+'.'}
-  if(/split/i.test(need.pay||''))return 'Sa split, ang '+f+'% ay sa card portion lang. Subukan niyo po sa <a href="/pay">payment calculator</a>.';return 'Cash: '+php(price)+'.'}
+  if(/split/i.test(need.pay||''))return 'Sa split, ang '+f+'% ay sa card portion lang. Subukan niyo po sa <a href="/payment-guide">payment calculator</a>.';return 'Cash: '+php(price)+'.'}
  function answerFree(t){var low=t.toLowerCase();
   if(/\b(rodz|owner|tao|human|call|tawag|agent|kausap)\b/.test(low))return escalate('Customer asked to talk to Rodz');
   if(/(tawad|discount|less|negotiate|lower price|bawas|special price)/.test(low))return escalate('Price negotiation / special price request');
@@ -215,7 +216,7 @@ function pageAsk(){var s=S(),pay=P(),L=items().filter(function(x){return x.price
   var hit=L.filter(function(x){return low.indexOf(x.model.toLowerCase())>-1});
   if(hit.length)return bot(hit.map(function(x){return esc(x.name)+': <b>'+php(x.price)+'</b>'}).join('<br>')+'<br><span class="mini">Dealer price, cash. Card adds '+fee()+'% on the swiped amount. Confirm stock with us before paying.</span>',hit.slice(0,2).map(function(x){return ['Quote '+x.name,'q:'+x.key]}).concat([['Talk to Rodz','human']]));
   if(/(price|presyo|magkano|how much)/.test(low))return bot('Nasa <a href="/prices">price list</a> po lahat ng current prices. Anong model po ang tinitingnan ninyo?',[['Continue','continue']]);
-  if(/(card|install|hulugan|split|fee|terminal)/.test(low))return bot('Card: '+fee()+'% terminal fee sa swiped amount. Pwede niyo pong i-cash ang fee at i-swipe lang ang item price. Kita niyo po ang exact breakdown sa <a href="/pay">payment calculator</a>.',[['Continue','continue']]);
+  if(/(card|install|hulugan|split|fee|terminal)/.test(low))return bot('Card: '+fee()+'% terminal fee sa swiped amount. Pwede niyo pong i-cash ang fee at i-swipe lang ang item price. Kita niyo po ang exact breakdown sa <a href="/payment-guide">payment calculator</a>.',[['Continue','continue']]);
   return bot('Hindi ko po sigurado ang tamang sagot diyan, kaya ayokong manghula. Gusto niyo po bang si Rodz mismo ang sumagot?',[['Yes, ask Rodz','human'],['Continue','continue']])}
  function escalate(reason){need._reason=reason;
   bot('Sige po, ipapasa ko po kay Rodz. Paano po kayo pinakamadaling ma-contact?<form class="hf" id="hf"><input name="n" placeholder="Your name" maxlength="80" required><input name="c" placeholder="Mobile number or FB name" maxlength="80" required><select name="p"><option>Text or call</option><option>Messenger</option><option>Viber</option></select><button class="btn sm" type="submit">Send to Rodz</button></form>',null,400);
@@ -232,11 +233,105 @@ function pageAsk(){var s=S(),pay=P(),L=items().filter(function(x){return x.price
   next()});
  document.getElementById('cin').addEventListener('submit',function(e){e.preventDefault();var i=document.getElementById('ctext'),t=i.value.trim();if(!t||busy)return;i.value='';add('me',esc(t));answerFree(t)});
  document.getElementById('human').addEventListener('click',function(){add('me','Talk to Rodz');escalate('Customer asked to talk to Rodz')});
+ var _b=qs().budget;if(_b){need.budget=_b}
  ask('cat')}
 
+
+/* ---------- catalog helpers (models from the price list) ---------- */
+var ICON={iphone:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3.4"/><path d="M10.5 4.6h3"/></svg>',macbook:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.6"/><path d="M2 18.5h20"/></svg>',ipad:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.6"/></svg>'};
+function iconKey(c){var k=String((c&&(c.id||c.name))||'').toLowerCase();return k.indexOf('mac')>-1?'macbook':k.indexOf('pad')>-1?'ipad':'iphone'}
+function models(){var out=[];(DATA.priceList.categories||[]).forEach(function(c){(c.items||[]).forEach(function(it){if(it.hidden)return;var vs=(it.variants||[]).map(function(v,i){return {i:i,label:v.label||'',price:num(v.price),off:v.status==='unavailable'}});
+ var av=vs.filter(function(v){return !v.off&&v.price});out.push({id:it.id,cat:c.name,catId:c.id||c.name,icon:iconKey(c),model:it.model,spec:it.spec||'',colors:it.colors||'',photo:it.photo||'',variants:vs,from:av.length?Math.min.apply(null,av.map(function(v){return v.price})):0,avail:av.length>0})})});return out}
+function pic(m,cls){return m.photo?'<img src="'+esc(m.photo)+'" alt="'+esc(m.model)+'" loading="lazy" onerror="this.outerHTML=\'<div class=ph-empty><span>'+esc(m.model)+'</span></div>\'">':'<div class="ph-empty"><span>'+ICON[m.icon]+'Photo coming soon</span></div>'}
+function pnum(n){return '<i>₱</i>'+Math.round(n).toLocaleString('en-PH')}
+function pcard(m){return '<a class="pc2 tile" href="/product/'+encodeURIComponent(m.id)+'"><div class="ph">'+pic(m)+'</div><span class="cat">'+esc(m.cat)+'</span><h3>'+esc(m.model)+'</h3><p class="sp">'+esc(m.variants.map(function(v){return v.label}).filter(Boolean).join(' · '))+'</p>'+
+ '<div class="pp">'+(m.avail?'<small>from</small>'+pnum(m.from):'<small>Message for availability</small>')+'</div></a>'}
+function wireDrag(el){if(!el)return;var down=false,x0=0,s0=0,moved=false;el.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse')return;down=true;moved=false;x0=e.clientX;s0=el.scrollLeft;el.classList.add('drag')});
+ window.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-x0;if(Math.abs(dx)>4)moved=true;el.scrollLeft=s0-dx});window.addEventListener('pointerup',function(){down=false;el.classList.remove('drag')});
+ el.addEventListener('click',function(e){if(moved){e.preventDefault();moved=false}},true)}
+function deliveryList(){var w=(S().ways||[]).filter(function(x){return x&&x.t});return w.length?w:[{t:'Same-day COD',d:'NCR and nearby provinces: Rizal, Laguna, Cavite, Bulacan, Pampanga.'},{t:'Meet-up COD',d:'By schedule at SM Pampanga, SM Clark, Marquee Mall and SM Telabastagan.'},{t:'Physical store',d:'Pampanga, by appointment or rush.'},{t:'Nationwide shipping',d:'Cash on pick-up via LBC.'},{t:'COD / COP',d:'Available in Luzon, Visayas and Mindanao, subject to serviceability and confirmation.'}]}
+function payMethods(){var m=S().payMethods;return (m&&m.length?m:['Cash','Credit card'])}
+var STEPS=[['Choose your gadget','Browse the latest available gadgets and select your preferred model.'],['Ask for the latest quotation','Send your preferred model, storage and color. We confirm availability and the applicable price.'],['Choose your payment method','Understand the cash and credit card arrangements before confirming.'],['Select delivery or pickup','Choose an available delivery, COD, scheduled meet-up or store arrangement.'],['Confirm your order','Submit your contact details and order information.'],['Wait for confirmation','The Estilo Pinas team verifies your order and coordinates the next steps.']];
+function stepsHTML(){return '<ol class="steps2">'+STEPS.map(function(x){return '<li><h3>'+x[0]+'</h3><p>'+x[1]+'</p></li>'}).join('')+'</ol>'}
+function faqs(){var f=fee(),L=[['What payment methods do you accept?',payMethods().join(' and ')+'. Card payments have a '+f+'% terminal fee on the amount you swipe — you can pay that fee in cash and swipe only the item price.'],
+ ['Where can I get my unit?',deliveryList().map(function(x){return x.t+': '+x.d}).join(' ')],
+ ['Can I visit your store?','Yes, by appointment or rush. '+S().address+'. Search "'+(S().mapsQuery||'Estilo Pinas Gadget Shop')+'" on Google Maps or Waze.'],
+ ['Why can prices change?',(DATA.priceList.note||[]).slice(0,3).join(' ')]];
+ (P().faq||[]).forEach(function(x){if(x&&x.on!==false&&x.q&&x.a)L.push([x.q,x.a])});return L}
+function faqHTML(){return '<div class="faq">'+faqs().map(function(x){return '<details><summary>'+esc(x[0])+'</summary><p>'+esc(x[1])+'</p></details>'}).join('')+'</div>'}
+function contactHTML(){var s=S();return '<div class="ct g2"><div class="tile it"><dl><div><dt>Store</dt><dd>'+esc(s.address)+'</dd></div><div><dt>Visits</dt><dd>By appointment or rush</dd></div><div><dt>Call / Viber</dt><dd><a href="'+tel()+'">'+esc(s.phone)+'</a></dd></div><div><dt>Google Maps / Waze</dt><dd>'+esc(s.mapsQuery||'Estilo Pinas Gadget Shop')+'</dd></div></dl>'+
+ '<div class="acts"><a class="btn" href="'+esc(s.fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.mapsQuery||'Estilo Pinas Gadget Shop')+'" target="_blank" rel="noopener">Google Maps</a><a class="btn ghost" href="https://waze.com/ul?q='+encodeURIComponent(s.mapsQuery||'Estilo Pinas Gadget Shop')+'" target="_blank" rel="noopener">Waze</a></div></div>'+
+ '<div class="tile blue it"><span class="n">DELIVERY &amp; PICKUP</span>'+deliveryList().map(function(x){return '<h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p>'}).join('')+'</div></div>'}
+
+/* ---------- PAGE: home ---------- */
+function pageHome(){var M=models(),feat=M.filter(function(m){return m.photo&&m.avail});var hero=feat[0]||M[0];var f=fee();
+ var cats=[];(DATA.priceList.categories||[]).forEach(function(c){var n=(c.items||[]).length;if(n)cats.push({id:c.id||c.name,name:c.name,n:n,icon:iconKey(c)})});
+ shell(
+ '<section class="wrap bento" aria-label="Welcome"><div class="tile b-hero"><div><p class="eyebrow"><span class="dot"></span>Legit trusted seller since 2014</p><h1>Your next gadget. A smarter way to buy.</h1><p>Find the right gadget for your needs, understand your payment options, and get personal assistance from Estilo Pinas.</p></div>'+
+  '<div class="acts"><a class="btn big" href="/gadgets">Explore gadgets</a><a class="btn ghost big" href="/ask">Ask our assistant</a></div></div>'+
+  '<div class="tile ink b-logo"><img src="/wordmark-white.svg" alt="Estilo Pinas"></div><div class="tile blue b-icon" aria-hidden="true"><svg viewBox="0 0 512 512"><path fill="#F3EEE6" fill-rule="evenodd" d="M76 217C76 118.6 97.6 97 196 97L316 97C414.4 97 436 118.6 436 217L436 299C436 310.48 433.48 313 422 313L164 313C155.8 313 154 314.8 154 323L154 347C154 358.48 156.52 361 168 361L414 361C423.84 361 426 363.16 426 373L426 409C426 423.76 422.76 427 408 427L196 427C97.6 427 76 405.4 76 307ZM154 213C154 172 163 163 204 163L308 163C349 163 358 172 358 213L358 237C358 245.2 356.2 247 348 247L164 247C155.8 247 154 245.2 154 237Z"/><defs><linearGradient id="hg" x1="0" x2="1"><stop offset="0" stop-color="#ff3d8b"/><stop offset=".5" stop-color="#8a5cff"/><stop offset="1" stop-color="#3d7bff"/></linearGradient></defs><rect x="222" y="185" width="68" height="18" rx="9" fill="url(#hg)"/></svg></div>'+
+  (hero?'<a class="tile cream b-feat" href="/product/'+encodeURIComponent(hero.id)+'"><div><span class="lbl2">Featured</span><h3>'+esc(hero.model)+'</h3><p class="pd-spec">'+esc(hero.spec)+'</p><div class="pp">'+(hero.avail?pnum(hero.from):'')+'</div></div><div class="ph">'+pic(hero)+'</div></a>':'')+'</section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Featured gadgets</p><h2>Latest drop</h2></div><a href="/gadgets">See all →</a></div><div class="rail2" id="rail" tabindex="0" aria-label="Featured gadgets, scroll sideways">'+M.slice(0,8).map(pcard).join('')+'</div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Gadget categories</p><h2>Shop by category</h2></div></div><div class="catg">'+cats.map(function(c,i){return '<a class="tile catt '+['ink','blue','cream'][i%3]+'" href="/gadgets?cat='+encodeURIComponent(c.id)+'"><div><h3>'+esc(c.name)+'</h3><p>'+c.n+' model'+(c.n>1?'s':'')+'</p></div>'+ICON[c.icon]+'</a>'}).join('')+'</div></section>'+
+ '<section class="wrap sec2"><div class="tile blue disc"><p class="eyebrow" style="color:#cfd6de">Product discovery</p><h3>Not sure what to get? Start with your budget.</h3><div class="chips2"><a href="/ask?budget=40000">Below ₱40,000</a><a href="/ask?budget=60000">₱40,000–₱60,000</a><a href="/ask?budget=90000">₱60,000–₱90,000</a><a href="/ask?budget=999999">Above ₱90,000</a></div></div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Why Estilo Pinas</p><h2>Presyo + tiwala + legit transaction</h2></div></div><div class="g3"><div class="tile it"><span class="n">01</span><h3>Brand new, sealed</h3><p>Every unit is factory sealed.</p></div><div class="tile it"><span class="n">02</span><h3>Legit since 2014</h3><p>A real store in Mabalacat, Pampanga you can visit by appointment.</p></div><div class="tile it"><span class="n">03</span><h3>Direct dealer prices</h3><p>We work with direct dealers so you get competitive prices.</p></div></div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Transparent pricing</p><h2>See the full cost first</h2><p>Same dealer price for cash and card. Card payments add a '+f+'% terminal fee on the swiped amount only.</p></div><a href="/prices">Price list →</a></div><div class="g2"><div class="tile price-ex"><span class="lbl2">Example · ₱30,000 item</span><div class="row"><span>Cash</span><b>'+pnum(30000)+'</b></div><div class="row"><span>Credit card (+'+f+'%)</span><b>'+pnum(30000*(1+f/100))+'</b></div><div class="row"><span>Card, fee paid in cash</span><span><b>'+pnum(30000)+'</b> swipe + '+php(30000*f/100)+' cash</span></div></div>'+
+  '<div class="tile ink it"><span class="n" style="color:#cfd6de">PAYMENT OPTIONS</span><h3>'+esc(payMethods().join(' · '))+'</h3><p>Pay all in cash, all on card, or split between the two. Some banks also offer credit-to-cash — ask your bank directly.</p><p style="margin-top:14px"><a class="btn light" href="/payment-guide">Open payment calculator</a></p></div></div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">How to avail</p><h2>Six simple steps</h2></div><a href="'+esc(S().fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas →</a></div>'+stepsHTML()+'</section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Delivery &amp; pickup</p><h2>Get it your way</h2></div></div><div class="g3">'+deliveryList().map(function(x,i){return '<div class="tile it'+(i===0?' blue':'')+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('')+'</div></section>'+
+ '<section class="wrap sec2"><div class="tile cream rev2"><div><p class="eyebrow">Customer reviews</p><h3>Real buyers, real posts</h3><p>See our customers’ SOLD and legit-check posts on our Facebook page.</p></div><a class="btn" href="'+esc(S().fb)+'" target="_blank" rel="noopener">See reviews on Facebook</a></div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">FAQ</p><h2>Good to know</h2></div></div>'+faqHTML()+'</section>'+
+ '<section class="wrap sec2"><div class="tile ink rev2"><div><p class="eyebrow" style="color:#cfd6de">Shopping assistant</p><h3>Ask us anything</h3><p>Tell us your budget and how you’ll use it — we’ll help you pick. Rodz can join anytime.</p></div><a class="btn light" href="/ask">Ask our assistant</a></div></section>'+
+ '<section class="wrap sec2" style="padding-bottom:48px"><div class="sh2"><div><p class="eyebrow">Contact &amp; store</p><h2>Visit or message us</h2></div></div>'+contactHTML()+'</section>');
+ wireDrag(document.getElementById('rail'))}
+
+/* ---------- PAGE: gadgets ---------- */
+function pageGadgets(){var o=qs(),cat=o.cat||'all',q='';var cats=[];(DATA.priceList.categories||[]).forEach(function(c){if((c.items||[]).length)cats.push({id:c.id||c.name,name:c.name})});
+ shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>All gadgets</p><h1 class="disp">Gadgets</h1><p class="lead">Brand new, sealed. Tap a gadget to see storage options, prices and payment breakdown.</p></div></section>'+
+  '<section class="wrap" style="padding-bottom:48px"><div class="filt" role="toolbar" aria-label="Filter"><button type="button" data-c="all">All</button>'+cats.map(function(c){return '<button type="button" data-c="'+esc(c.id)+'">'+esc(c.name)+'</button>'}).join('')+'<input type="search" id="gq" placeholder="Search model…" aria-label="Search model"></div><div class="pgrid" id="pg"></div></section>');
+ function draw(){var M=models().filter(function(m){return (cat==='all'||m.catId===cat)&&(!q||m.model.toLowerCase().indexOf(q)>-1)});
+  document.querySelectorAll('.filt button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.c===cat))});
+  document.getElementById('pg').innerHTML=M.length?M.map(pcard).join(''):'<p class="empty">No gadgets match. Try another search or <a href="/ask">ask us</a>.</p>'}
+ document.querySelector('.filt').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;cat=b.dataset.c;try{history.replaceState(null,'',cat==='all'?'/gadgets':'/gadgets?cat='+encodeURIComponent(cat))}catch(_){}draw()});
+ document.getElementById('gq').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();draw()});draw()}
+
+/* ---------- PAGE: product ---------- */
+function pageProduct(){var slug=decodeURIComponent((location.pathname.split('/product/')[1]||qs().id||'').replace(/\/$/,''));var m=models().find(function(x){return x.id===slug});
+ if(!m){shell('<section class="hero"><div class="wrap"><h1 class="disp">Gadget not found</h1><p class="lead">It may have been removed. See all available gadgets.</p><p><a class="btn" href="/gadgets">See gadgets</a></p></div></section>');return}
+ document.title=m.model+' · Estilo Pinas';var sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var f=fee();
+ shell('<section class="wrap"><p style="margin:16px 0 0;font-size:13px"><a href="/gadgets" style="color:var(--mute)">← All gadgets</a></p><div class="pd"><div class="tile pd-ph">'+pic(m)+'</div><div class="pd-info"><span class="lbl2">'+esc(m.cat)+'</span><h1>'+esc(m.model)+'</h1>'+(m.spec?'<p class="pd-spec">'+esc(m.spec)+'</p>':'')+(m.colors?'<p class="pd-col"><b>COLORS</b>'+esc(m.colors)+'</p>':'')+
+  '<div><span class="lbl2">Storage / option</span><div class="vsel" role="group" aria-label="Choose option" style="margin-top:8px">'+m.variants.map(function(v,i){return '<button type="button" data-i="'+i+'"'+(v.off||!v.price?' disabled':'')+'>'+esc(v.label||'Standard')+(v.off?' · unavailable':'')+'</button>'}).join('')+'</div></div>'+
+  '<div class="tile pd-price" id="pp" aria-live="polite"></div><div class="pd-acts" id="pa"></div><p class="pd-note">Brand new, sealed. Prices follow dealer availability — we confirm stock and the latest price before you pay.</p>'+
+  '<div class="trust"><div class="tile">Brand new, sealed</div><div class="tile">Legit since 2014</div><div class="tile">'+esc(payMethods().join(' · '))+'</div></div></div></div></section>'+
+  '<section class="wrap sec2" style="padding-bottom:48px"><div class="sh2"><div><p class="eyebrow">How to avail</p><h2>Six simple steps</h2></div></div>'+stepsHTML()+'</section>');
+ function draw(){var v=m.variants[sel];document.querySelectorAll('.vsel button').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.i===sel))});
+  var pp=document.getElementById('pp'),pa=document.getElementById('pa');
+  if(!v||!v.price||v.off){pp.innerHTML='<div class="cash"><span>PRICE</span><b style="font-size:20px">Message us</b></div>';pa.innerHTML='<a class="btn big" href="'+esc(msgr('Hi Estilo Pinas! Is the '+m.model+' available?'))+'" target="_blank" rel="noopener">Ask for availability</a>';return}
+  var st={m:m.id,v:v.label};pp.innerHTML='<div class="cash"><span>CASH PRICE</span><b>'+pnum(v.price)+'</b></div><div class="card"><span>Credit card (+'+f+'% terminal fee)</span><b>'+php(v.price*(1+f/100))+'</b></div><div class="card"><span>Card, fee paid in cash</span><b>swipe '+php(v.price)+' + '+php(v.price*f/100)+' cash</b></div>';
+  pa.innerHTML='<a class="btn big" href="/order?'+esc(toQS({m:m.id,v:v.label,pay:'cash'}))+'">Order this</a><a class="btn ghost big" href="/payment-guide?'+esc(toQS({m:m.id,v:v.label,pay:'split',fee:'cash'}))+'#calc-sec">Payment calculator</a><a class="btn ghost big" href="'+esc(msgr('Hi Estilo Pinas! Is the '+m.model+' '+v.label+' available? Cash price '+php(v.price)+'.'))+'" target="_blank" rel="noopener">Ask for stock</a>'}
+ document.querySelector('.vsel').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;sel=+b.dataset.i;draw()});draw()}
+
+/* ---------- PAGE: how to order ---------- */
+function pageHow(){shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>How to avail</p><h1 class="disp">How to order</h1><p class="lead">Six simple steps from choosing your gadget to getting it in your hands.</p></div></section>'+
+ '<section class="wrap">'+stepsHTML()+'<div class="calc-acts"><a class="btn big" href="'+esc(S().fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas</a><a class="btn ghost big" href="/gadgets">Choose a gadget</a><a class="btn ghost big" href="/order">Send an order request</a></div></section>'+
+ '<section class="wrap sec2"><div class="sh2"><div><p class="eyebrow">Delivery &amp; pickup</p><h2>Get it your way</h2></div></div><div class="g3">'+deliveryList().map(function(x){return '<div class="tile it"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('')+'</div></section>'+
+ '<section class="wrap sec2" style="padding-bottom:48px"><div class="sh2"><div><p class="eyebrow">FAQ</p><h2>Good to know</h2></div></div>'+faqHTML()+'</section>')}
+
+/* ---------- PAGE: track order ---------- */
+var FLOW=['New Inquiry','For Owner Review','Quotation Sent','Awaiting Customer Confirmation','Order Confirmed','Awaiting Payment','Paid','Processing','Ready for Pickup','Shipped','Completed'];
+function pageTrack(){var o=qs();shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>Order status</p><h1 class="disp">Track your order</h1><p class="lead">Enter the reference number from your order request (e.g. EP-261119-AB12) and the mobile number you used.</p></div></section>'+
+ '<section class="wrap" style="padding-bottom:48px"><form class="tile trk" id="tf" novalidate><label class="fl"><span>Reference number</span><input name="r" required maxlength="20" autocapitalize="characters" value="'+esc(o.ref||'')+'" placeholder="EP-XXXXXX-XXXX"></label><label class="fl"><span>Mobile number</span><input name="m" required inputmode="tel" maxlength="20" placeholder="09XX XXX XXXX"></label><button class="btn big" type="submit">Check status</button><div id="tr" aria-live="polite"></div></form></section>');
+ document.getElementById('tf').onsubmit=function(e){e.preventDefault();var fd=new FormData(this),out=document.getElementById('tr'),b=this.querySelector('button');var r=String(fd.get('r')).trim(),m=String(fd.get('m')).trim();
+  if(!r||!m){out.innerHTML='<p class="err">Please enter both.</p>';return}b.disabled=true;b.textContent='Checking…';
+  rpc('track_order',{p_ref:r,p_mobile:m}).then(function(d){b.disabled=false;b.textContent='Check status';if(!d||!d.ref){out.innerHTML='<p class="err">No order found with that reference and mobile number.</p>';return}
+   var k=FLOW.indexOf(d.status),cancelled=d.status==='Cancelled';out.innerHTML='<div class="trk-res"><span class="lbl2">'+esc(d.ref)+'</span><b>'+esc(d.status)+'</b><span>'+esc(d.item)+(d.total?' · '+php(d.total):'')+'</span>'+(cancelled?'':'<div class="tl" aria-hidden="true">'+FLOW.map(function(_,i){return '<i class="'+(i<=k?'on':'')+'"></i>'}).join('')+'</div>')+'<p class="mini">Updated '+new Date(d.updated_at).toLocaleString('en-PH')+'</p></div>'})
+  .catch(function(){b.disabled=false;b.textContent='Check status';out.innerHTML='<p class="err">Could not check right now. Please message us on Facebook.</p>'})}}
+
+/* ---------- PAGE: contact ---------- */
+function pageContact(){shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>Contact &amp; store</p><h1 class="disp">Visit or message us</h1><p class="lead">Physical store in Mabalacat, Pampanga — by appointment or rush. Message us anytime.</p></div></section><section class="wrap" style="padding-bottom:48px">'+contactHTML()+'</section>')}
 /* ---------- boot ---------- */
 (function src(){var o=qs();if(o.utm_source||o.src){try{sessionStorage.setItem('ep_src',(o.utm_source||o.src)+(o.utm_campaign?'/'+o.utm_campaign:''))}catch(e){}}})();
-var PAGES={pay:pagePay,q:pageQuote,order:pageOrder,ask:pageAsk};
+var PAGES={home:pageHome,gadgets:pageGadgets,product:pageProduct,howto:pageHow,track:pageTrack,contact:pageContact,pay:pagePay,q:pageQuote,order:pageOrder,ask:pageAsk};
 root.innerHTML='<div class="loading" aria-busy="true"><img src="/wordmark.svg" alt="Estilo Pinas" width="110" height="51"></div>';
 load().then(function(){(PAGES[PAGE]||pagePay)()});
 window.EPQ={quote:quote};

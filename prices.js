@@ -2,7 +2,7 @@
    Reads the price list saved by the owner editor; falls back to pricelist.js until the first save. */
 (function(){
 var CFG=window.EP_CONFIG||{},el=document.getElementById('pl');
-var data=JSON.parse(JSON.stringify(window.EP_PRICES_DEFAULT)),set={fb:'https://www.facebook.com/share/1aQGnn61Tp/',messenger:'',phone:'0995 883 1899',address:'06 Macapagal St., Brgy. Lakandula, Mabalacat, Pampanga',hours:'By appointment'};
+var data=JSON.parse(JSON.stringify(window.EP_PRICES_DEFAULT)),set={fb:'https://www.facebook.com/share/1FWGJJsKv8/',messenger:'',phone:'0995 883 1899',address:'06 Macapagal St., Brgy. Lakandula, Mabalacat, Pampanga',hours:'By appointment'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function num(p){var n=Number(String(p).replace(/[^0-9.]/g,''));return n>0?n:0}
 function money(p){var n=num(p);return n?'<span class="cur">₱</span>'+n.toLocaleString('en-PH'):'<span class="ask-p">Message for price</span>'}
@@ -20,7 +20,7 @@ function render(){
  var cats=(data.categories||[]).filter(function(c){return (c.items||[]).length});
  var h='';
  h+='<header class="top"><div class="wrap top-in"><a class="brand" href="/" aria-label="Estilo Pinas home"><img src="/wordmark.svg" alt="Estilo Pinas" width="124" height="58"></a>'+
-  '<nav class="top-links"><a href="/">Shop</a><a href="/pay">Payment guide</a><a href="/ask">Ask us</a><a class="btn" href="'+esc(msgr('Hi Estilo Pinas! I saw your price list. Can I ask about stock?'))+'" target="_blank" rel="noopener">Message us</a></nav></div></header>';
+  '<nav class="top-links"><a href="/gadgets">Gadgets</a><a href="/payment-guide">Payment guide</a><a href="/how-to-order">How to order</a><a href="/contact">Contact</a><a class="btn" href="/ask">Ask us</a></nav></div></header>';
  h+='<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>Updated '+dateStr(data.updated)+'</p>'+
   '<h1 class="disp">Price list</h1><p class="lead">Brand new, sealed units. Message us before ordering to confirm the latest stock and price.</p></div></section>';
  h+='<nav class="cats" aria-label="Categories"><div class="wrap cats-in">'+cats.map(function(c){return '<a href="#'+slug(c.id||c.name)+'">'+iconFor(c)+'<span>'+esc(c.name)+'</span></a>'}).join('')+'<a href="#reminder" class="rem-l">Price reminder</a></div></nav>';
@@ -33,7 +33,7 @@ function render(){
    h+='<article class="card'+(avail?'':' off')+'"><div class="card-h"><h3>'+esc(it.model)+'</h3>'+(it.spec?'<p class="spec">'+esc(it.spec)+'</p>':'')+(it.colors?'<p class="cols"><span>Colors</span> '+esc(it.colors)+'</p>':'')+'</div><ul class="vars">'+
     vs.map(function(v){var off=v.status==='unavailable';
      return '<li class="'+(off?'off':'')+'"><span class="lab">'+esc(v.label||'Price')+'</span><span class="lead-dots" aria-hidden="true"></span>'+(off?'<span class="na">Unavailable</span>':'<span class="pr">'+money(v.price)+'</span>')+'</li>'}).join('')+
-    '</ul><div class="card-acts"><a class="ask" href="/pay?m='+encodeURIComponent(it.id)+(vs.length===1?'&v='+encodeURIComponent(vs[0].label||''):'')+'#calc-sec">Card / split price →</a><a class="ask" href="'+esc(msgr('Hi Estilo Pinas! Is the '+it.model+(vs.length===1&&vs[0].label?' '+vs[0].label:'')+' available? I saw it on your price list.'))+'" target="_blank" rel="noopener">Ask for stock <span aria-hidden="true">→</span></a></div></article>'});
+    '</ul><div class="card-acts"><a class="ask" href="/payment-guide?m='+encodeURIComponent(it.id)+(vs.length===1?'&v='+encodeURIComponent(vs[0].label||''):'')+'#calc-sec">Card / split price →</a><a class="ask" href="'+esc(msgr('Hi Estilo Pinas! Is the '+it.model+(vs.length===1&&vs[0].label?' '+vs[0].label:'')+' available? I saw it on your price list.'))+'" target="_blank" rel="noopener">Ask for stock <span aria-hidden="true">→</span></a></div></article>'});
   h+='</div></section>'});
  var note=(data.note||[]).filter(Boolean),last=note.length>1&&/thank you/i.test(note[note.length-1])?note.pop():'';
  h+='<section class="rem" id="reminder"><div class="rem-in"><p class="eyebrow">'+esc(data.noteLabel||'Important price reminder')+'</p><h2>'+esc(data.noteTitle||'A quick note about our pricing')+'</h2>'+

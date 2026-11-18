@@ -46,6 +46,7 @@ var fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts
 function drawBadges(){fontsReady.then(function(){document.querySelectorAll('canvas.badge').forEach(function(cv){drawBadge(cv,BADGE[cv.getAttribute('data-badge')]||BADGE.black)})})}
 function render(){
  stopRail();
+ if(window.EP_MODE==='admin'){app.innerHTML='<header class="adm-top"><div class="adm-in"><img src="/wordmark.svg" alt="Estilo Pinas" width="84" height="39"><b>Owner admin</b><nav><a href="/" target="_blank" rel="noopener">View website ↗</a><a href="/prices" target="_blank" rel="noopener">Price list ↗</a></nav></div></header>'+(editing?'':'<main class="adm-main"><p>'+(canWrite?'Opening tools…':'Log in with the owner account to manage products, prices, orders and alerts.')+'</p></main>');return}
  var s=S(),h='';
  h+='<nav class="nav"><div class="wrap"><a class="logo" href="#top"><span class="mk">'+logoMk()+'</span><span class="wm">'+esc(s.shopName)+'</span></a>'+
   '<div class="navlinks"><a href="#all">Shop</a><a href="/prices">Price list</a><a href="/pay">Payment guide</a><a href="/ask">Ask us</a><a href="#visit">Visit</a></div><div class="acts">'+
@@ -179,12 +180,12 @@ function edHTML(){var s=S();
  var stats=(s.stats||[]).map(function(x,i){return '<div class="two">'+f('Number','data-st="n" data-i="'+i+'"',x.n)+f('Label','data-st="l" data-i="'+i+'"',x.l)+'</div>'}).join('');
  return '<div class="ed-h"><b>Edit site</b><button class="btn ghost sm" id="ed-close">Close</button></div><div class="ed-b">'+
   '<datalist id="catlist">'+['iPhone','iPad','Android','Mac','Accessories'].concat(cats()).filter(function(v,i,a){return a.indexOf(v)===i}).map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist>'+
-  opsHTML()+'<details><summary>Products ('+state.products.length+')</summary><div class="g"><button class="addrow" id="ed-add">+ Add product</button>'+prods+'</div></details>'+
-  plHTML()+'<details><summary>Top of page</summary><div class="g">'+f('Small line on top','data-s="heroEyebrow"',s.heroEyebrow)+f('Big headline (one line per row)','data-s="heroTitle"',s.heroTitle,'',1)+f('Description','data-s="heroSub"',s.heroSub,'',1)+stats+'</div></details>'+
-  '<details><summary>Moving banner</summary><div class="g">'+f('One message per line','data-s="ticker"',(s.ticker||[]).join('\n'),'',1)+'</div></details>'+
-  '<details><summary>Latest drop section</summary><div class="g">'+f('Title','data-s="railTitle"',s.railTitle)+f('Line under title','data-s="railSub"',s.railSub)+'</div></details>'+
-  '<details><summary>Promises</summary><div class="g">'+prom+'</div></details>'+
-  '<details><summary>Ways to buy</summary><div class="g">'+ways+'<button class="addrow" id="ed-wadd">+ Add a way to buy</button></div></details>'+
+  opsHTML()+
+  plHTML()+
+  
+  
+  
+  '<details><summary>Delivery & pickup</summary><div class="g"><p class="small">Shown on the homepage, How to order and Contact pages.</p>'+ways+'<button class="addrow" id="ed-wadd">+ Add a delivery option</button></div></details>'+
   '<details><summary>Contact & store</summary><div class="g">'+f('Facebook page username (for Messenger)','data-s="messenger"',s.messenger,'e.g. estilopinas')+f('Facebook page link','data-s="fb"',s.fb,'https://facebook.com/...')+f('Call / Viber','data-s="phone"',s.phone)+f('Address','data-s="address"',s.address,'',1)+f('Hours','data-s="hours"',s.hours)+f('Name to search on maps','data-s="mapsQuery"',s.mapsQuery)+
    '<div class="tools"><label class="up">'+(s.storePhoto?'Change store photo':'Add store photo')+'<input type="file" accept="image/*" data-upk="storePhoto"></label>'+(s.storePhoto?'<button data-clr="storePhoto">Remove</button>':'')+'</div></div></details>'+
   '<details><summary>Brand</summary><div class="g">'+f('Shop name','data-s="shopName"',s.shopName)+'<div class="tools"><label class="up">'+(s.logo?'Change logo (PNG)':'Use my own logo file (PNG)')+'<input type="file" accept="image/*" data-upk="logo"></label>'+(s.logo?'<button data-clr="logo">Use built-in logo</button>':'')+'</div></div></details>'+
@@ -195,7 +196,7 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
  P.categories.forEach(function(c,ci){
   h+='<div class="pl-cat"><div class="f"><label>Category name</label><input data-pl="cname" data-c="'+ci+'" value="'+esc(c.name)+'"></div>';
   c.items.forEach(function(it,ii){var k='data-c="'+ci+'" data-i="'+ii+'"';
-   h+='<div class="erow">'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Details (specs)','data-pl="spec" '+k,it.spec||'','e.g. 6.9-inch display · A20 Pro chip')+f('Colors','data-pl="colors" '+k,it.colors||'','e.g. Black, Silver');
+   h+='<div class="erow"><div class="top"><div class="thumb">'+(it.photo?'<img alt="" src="'+esc(it.photo)+'">':'')+'</div><div class="tools"><label class="up">'+(it.photo?'Change photo':'Add photo')+'<input type="file" accept="image/*" data-plup="'+ci+','+ii+'"></label>'+(it.photo?'<button data-plnophoto="'+ci+','+ii+'">Remove photo</button>':'')+'<label class="chk"><input type="checkbox" data-pl="show" '+k+(it.hidden?'':' checked')+'> Show on website</label></div></div>'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Details (specs)','data-pl="spec" '+k,it.spec||'','e.g. 6.9-inch display · A20 Pro chip')+f('Colors','data-pl="colors" '+k,it.colors||'','e.g. Black, Silver');
    it.variants.forEach(function(v,vi){var kv=k+' data-v="'+vi+'"';
     h+='<div class="pl-var"><div class="two">'+f('Storage / option','data-pl="vlabel" '+kv,v.label,'256GB')+f('Price (₱)','data-pl="vprice" inputmode="numeric" '+kv,v.price,'Blank = message for price')+'</div>'+
      '<div class="tools"><label class="chk"><input type="checkbox" data-pl="vavail" '+kv+(v.status!=='unavailable'?' checked':'')+'> Available</label>'+(it.variants.length>1?'<button class="del" data-plvdel="'+ci+','+ii+','+vi+'">Remove option</button>':'')+'</div></div>'});
@@ -204,13 +205,14 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
  h+='<button class="addrow" id="pl-addcat">+ Add category</button>'+f('Reminder label','data-pl="noteLabel"',P.noteLabel||'')+f('Reminder heading','data-pl="noteTitle"',P.noteTitle||'')+f('Reminder text (one paragraph per line)','data-pl="note"',(P.note||[]).join('\n'),'',1)+'</div></details>';
  return h}
 function plSet(t){var d=t.dataset,P=state.priceList,c=P.categories[+d.c],it=c&&c.items[+d.i],v=it&&it.variants[+d.v];
- if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='colors')it.colors=t.value;else if(d.pl==='vlabel')v.label=t.value;
+ if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='colors')it.colors=t.value;else if(d.pl==='show')it.hidden=!t.checked;else if(d.pl==='vlabel')v.label=t.value;
  else if(d.pl==='vprice'){var x=t.value.replace(/[^0-9]/g,'');v.price=x?Number(x):''}else if(d.pl==='vavail')v.status=t.checked?'available':'unavailable';
  else if(d.pl==='note')P.note=t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean);else P[d.pl]=t.value;
  P.updated=today()}
 function plClick(t){var d=t.dataset,P=state.priceList;if(!P)return false;var a;
  function conf(){if(d.confirm)return true;d.confirm='1';t.textContent='Tap again to delete';return false}
- if(d.pladdv){a=d.pladdv.split(',');P.categories[+a[0]].items[+a[1]].variants.push({label:'',price:'',status:'available'})}
+ if(d.plnophoto){a=d.plnophoto.split(',');delete P.categories[+a[0]].items[+a[1]].photo}
+ else if(d.pladdv){a=d.pladdv.split(',');P.categories[+a[0]].items[+a[1]].variants.push({label:'',price:'',status:'available'})}
  else if(d.plvdel){a=d.plvdel.split(',');P.categories[+a[0]].items[+a[1]].variants.splice(+a[2],1)}
  else if(d.pladd){P.categories[+d.pladd].items.push({id:'m'+Date.now().toString(36),model:'New model',spec:'',variants:[{label:'',price:'',status:'available'}]})}
  else if(d.pldel){if(!conf())return true;a=d.pldel.split(',');P.categories[+a[0]].items.splice(+a[1],1)}
@@ -312,7 +314,8 @@ function wireEd(){
   else if(d.w){s.ways[+d.i][d.w]=t.value}else if(d.pm){s.promise[+d.i][d.pm]=t.value}else if(d.st){s.stats[+d.i][d.st]=t.value}else return;
   live()});
  ed.addEventListener('change',function(e){var t=e.target,d=t.dataset;
-  if(opsChange(t))return;if(d.q&&t.tagName==='SELECT'){OPS.qst[d.q]=t.value;OPS.qlink='';paintEd();return}
+  if(opsChange(t))return;
+  if(d.plup&&t.files&&t.files[0]){var pa=d.plup.split(',');toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var it=state.priceList.categories[+pa[0]].items[+pa[1]];it.photo=url;state.priceList.updated=today();live();paintEd()})});return}if(d.q&&t.tagName==='SELECT'){OPS.qst[d.q]=t.value;OPS.qlink='';paintEd();return}
   if(d.p==='status'||d.p==='featured'||d.p==='spotlight'){var p=find(d.id);if(d.p==='spotlight'&&t.checked)state.products.forEach(function(x){x.spotlight=false});p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false;live();if(d.p==='spotlight')paintEd()}
   if(d.gup&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var p=find(d.gup);(p.photos=p.photos||[]).push(url);live();paintEd()})})}
   if((d.up||d.upk)&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],d.upk==='storePhoto'?1600:1100,function(du){uploadImg(du,function(url){if(d.up){var p=find(d.up);p.photo=url;p.sample=false}else S()[d.upk]=url;live();paintEd()})},d.upk==='storePhoto')}});

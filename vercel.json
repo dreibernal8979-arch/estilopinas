@@ -1,7 +1,32 @@
 {
-  "cleanUrls": true,
-  "redirects": [ {"source":"/edit","destination":"/admin","permanent":false} ],
-  "headers": [
-    { "source": "/(site.js|site.css|config.js)", "headers": [ {"key":"Cache-Control","value":"no-cache, must-revalidate"} ] }
-  ]
+ "cleanUrls": true,
+ "redirects": [
+  {
+   "source": "/edit",
+   "destination": "/admin",
+   "permanent": false
+  },
+  {
+   "source": "/pay",
+   "destination": "/payment-guide",
+   "permanent": true
+  }
+ ],
+ "headers": [
+  {
+   "source": "/(site.js|site.css|config.js|shop.js|ep.css|pricelist.js)",
+   "headers": [
+    {
+     "key": "Cache-Control",
+     "value": "no-cache, must-revalidate"
+    }
+   ]
+  }
+ ],
+ "rewrites": [
+  {
+   "source": "/product/:slug",
+   "destination": "/product.html"
+  }
+ ]
 }
