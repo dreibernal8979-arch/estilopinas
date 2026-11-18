@@ -103,11 +103,11 @@ function flip(fromEl,toEl){if(RM||!fromEl||!toEl)return;var a=fromEl.getBounding
 function rail(el,items,o){o=o||{};if(!el||!items.length)return null;
  var order=items.map(function(_,i){return i});
  el.innerHTML='<div class="fr-track" tabindex="0" aria-label="Floating gadgets. Scroll sideways or use the arrow buttons.">'+
-  items.map(function(m,i){return '<button type="button" class="fr-it" data-i="'+i+'" style="--d:'+((i*0.37)%2).toFixed(2)+'s" aria-label="'+esc(m.model)+'"><span class="fr-arc"><span class="fr-fl">'+o.render(m)+'</span><i class="gs"></i></span>'+(o.label?'<span class="fr-lb">'+o.label(m)+'</span>':'')+'</button>'}).join('')+
+  items.map(function(m,i){return '<button type="button" class="fr-it" data-i="'+i+'" style="--d:'+((i*0.37)%2).toFixed(2)+'s" aria-label="'+esc(m.model)+'"><span class="fr-arc"><span class="fr-fl">'+o.render(m)+'</span><i class="gs"></i>'+(o.label?'<span class="fr-lb">'+o.label(m)+'</span>':'')+'</span></button>'}).join('')+
   '</div><div class="fr-ui"><button type="button" class="sr-arw" data-fr="-1" aria-label="Previous">←</button><button type="button" class="btn ghost" data-fr="shuffle">Shuffle <span aria-hidden="true">⤨</span></button><button type="button" class="sr-arw" data-fr="1" aria-label="Next">→</button></div>';
  var tr=el.querySelector('.fr-track'),nodes=[].slice.call(tr.children),raf=0;
  function place(){raf=0;var r=tr.getBoundingClientRect(),cx=r.left+r.width/2,half=r.width/2||1;
-  nodes.forEach(function(n){var b=n.getBoundingClientRect(),d=Math.max(-1.4,Math.min(1.4,(b.left+b.width/2-cx)/half)),a=n.firstChild;
+  nodes.forEach(function(n){var b=n.getBoundingClientRect(),d=Math.max(-1.2,Math.min(1.2,(b.left+b.width/2-cx)/half)),a=n.firstChild;
    a.style.transform='translateY('+(d*d*58).toFixed(1)+'px) rotate('+(d*7).toFixed(2)+'deg) scale('+(1-Math.min(1,Math.abs(d))*.22).toFixed(3)+')';
    n.style.zIndex=String(100-Math.round(Math.abs(d)*50))})}
  function q(){if(!raf)raf=requestAnimationFrame(place)}
