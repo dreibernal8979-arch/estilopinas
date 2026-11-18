@@ -251,7 +251,7 @@ function opsHTML(){if(!canWrite)return '';var h='';
  var od=OPS.orders||[],act=od.filter(function(o){return ['Completed','Cancelled'].indexOf(o.status)<0});
  h+='<details'+(act.some(function(o){return o.status==='New Inquiry'||o.status==='For Owner Review'})?' open':'')+'><summary>Orders ('+act.length+' active)</summary><div class="g">'+(od.length?'':'<p class="small">No order requests yet.</p>')+
   od.map(function(o){var q=o.quote||{},c=o.customer||{},it=o.item||{},d=o.delivery||{};
-   return '<div class="erow"><div class="small"><b>'+esc(o.ref)+'</b> · '+when(o.created_at)+' · '+esc(o.price_source)+'</div><b>'+esc((it.model||'')+' '+(it.variant||''))+'</b>'+
+   return '<div class="erow"><div class="small"><b>'+esc(o.ref)+'</b> · '+when(o.created_at)+' · '+esc(o.price_source)+'</div><b>'+esc((it.model||'')+' '+(it.variant||''))+'</b>'+(it.lines&&it.lines.length>1?'<div class="small">'+it.lines.map(function(l){return esc(l.model+' '+l.variant)+(l.qty>1?' ×'+l.qty:'')+' — '+php0(l.price*(l.qty||1))}).join('<br>')+'</div>':'')+
    '<div>'+esc(c.name)+' · <a href="tel:'+esc(c.mobile)+'">'+esc(c.mobile)+'</a>'+(c.email?' · '+esc(c.email):'')+'</div>'+
    '<div class="small">Total '+php0(q.total)+' · '+(q.card>0?'cash '+php0(q.cashDue)+' + swipe '+php0(q.swipe)+' (fee '+php0(q.fee)+' '+(q.feeBy==='cash'?'in cash':'on card')+')':'cash')+'</div>'+
    '<div class="small">'+esc(d.how||'')+(d.address?' · '+esc(d.address):'')+(o.notes?' · “'+esc(o.notes)+'”':'')+(o.source?' · from '+esc(o.source):'')+'</div>'+
