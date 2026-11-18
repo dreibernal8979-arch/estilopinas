@@ -381,3 +381,12 @@ footer .badge{max-width:300px;filter:drop-shadow(-12px 18px 16px var(--shadow))}
 
 /* price list editor */
 .pl-cat{border:1px solid rgba(0,0,0,.12);border-radius:14px;padding:12px;display:grid;gap:10px}.pl-var{border-top:1px dashed rgba(0,0,0,.18);padding-top:8px;display:grid;gap:6px}.ed .small a{color:inherit}
+.ed details.ra.hot>summary{color:#c4123f}.ed details.ra.hot{border-color:#c4123f}
+
+/* phone bottom bar (same as price list / payment pages) */
+.tabbar{display:none}
+@media (max-width:820px){.tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid rgba(0,0,0,.08);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+ .tabbar a{display:grid;justify-items:center;gap:2px;min-height:50px;align-content:center;text-decoration:none;font:700 11px Archivo,sans-serif;color:#6b6c73}
+ .tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+ .tabbar a[aria-current="page"]{color:#0e0f11}
+ body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}}

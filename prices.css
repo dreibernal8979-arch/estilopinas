@@ -83,3 +83,4 @@ a{color:inherit}img{display:block}
  .foot{background:#fff;border-top:1px solid var(--line)}.foot img{filter:none}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.card-acts{display:flex;flex-wrap:wrap;gap:4px 18px}
