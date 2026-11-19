@@ -30,11 +30,11 @@
   },
   {
    "source": "/product/:slug",
-   "destination": "/product.html"
+   "destination": "/product"
   },
   {
    "source": "/for/:slug",
-   "destination": "/q.html"
+   "destination": "/q"
   }
  ]
 }
