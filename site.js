@@ -46,7 +46,7 @@ var fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts
 function drawBadges(){fontsReady.then(function(){document.querySelectorAll('canvas.badge').forEach(function(cv){drawBadge(cv,BADGE[cv.getAttribute('data-badge')]||BADGE.black)})})}
 function render(){
  stopRail();
- if(window.EP_MODE==='admin'){app.innerHTML='<header class="adm-top"><div class="adm-in"><img src="/wordmark.svg" alt="Estilo Pinas" width="84" height="39"><b>Owner admin</b><nav><a href="/" target="_blank" rel="noopener">View website ↗</a><a href="/prices" target="_blank" rel="noopener">Price list ↗</a></nav></div></header>'+(editing?'':'<main class="adm-main"><p>'+(canWrite?'Opening tools…':'Log in with the owner account to manage products, prices, orders and alerts.')+'</p></main>');return}
+ if(window.EP_MODE==='admin'){app.innerHTML='<header class="adm-top"><div class="adm-in"><img src="/wordmark.svg" alt="Estilo Pinas" width="84" height="39"><b>Owner admin</b><nav><a href="/" target="_blank" rel="noopener">View website ↗</a><a href="/prices" target="_blank" rel="noopener">Price list ↗</a>'+(canWrite?'<button class="lgout" type="button" id="lgout">Log out</button>':'')+'</nav></div></header>'+(editing?'':'<main class="adm-main"><p>'+(canWrite?'Opening tools…':'Log in with the owner account to manage products, prices, orders and alerts.')+'</p></main>');return}
  var s=S(),h='';
  h+='<nav class="nav"><div class="wrap"><a class="logo" href="#top"><span class="mk">'+logoMk()+'</span><span class="wm">'+esc(s.shopName)+'</span></a>'+
   '<div class="navlinks"><a href="#all">Shop</a><a href="/prices">Price list</a><a href="/pay">Payment guide</a><a href="/ask">Ask us</a><a href="#visit">Visit</a></div><div class="acts">'+
@@ -192,7 +192,7 @@ function edHTML(){var s=S();
   '<details><summary>Contact & store</summary><div class="g">'+f('Facebook page username (for Messenger)','data-s="messenger"',s.messenger,'e.g. estilopinas')+f('Facebook page link','data-s="fb"',s.fb,'https://facebook.com/...')+f('Call / Viber','data-s="phone"',s.phone)+f('Address','data-s="address"',s.address,'',1)+f('Hours','data-s="hours"',s.hours)+f('Name to search on maps','data-s="mapsQuery"',s.mapsQuery)+
    '<div class="tools"><label class="up">'+(s.storePhoto?'Change store photo':'Add store photo')+'<input type="file" accept="image/*" data-upk="storePhoto"></label>'+(s.storePhoto?'<button data-clr="storePhoto">Remove</button>':'')+'</div></div></details>'+
   '<details><summary>Brand</summary><div class="g">'+f('Shop name','data-s="shopName"',s.shopName)+'<div class="tools"><label class="up">'+(s.logo?'Change logo (PNG)':'Use my own logo file (PNG)')+'<input type="file" accept="image/*" data-upk="logo"></label>'+(s.logo?'<button data-clr="logo">Use built-in logo</button>':'')+'</div></div></details>'+
-  '</div><div class="ed-f"><span class="small" id="ed-state">'+(dirty?'Unsaved changes':'Changes show live. Tap Save to publish.')+'</span><div class="tools"><button class="btn ghost sm" id="ed-cancel">Undo all</button><button class="btn sm" id="ed-save">Save</button></div></div>'}
+  '</div><div class="ed-f"><span class="small" id="ed-state">'+(dirty?'Saving soon…':'Changes save automatically.')+'</span><div class="tools"><button class="btn ghost sm" id="ed-cancel">Undo all</button><button class="btn sm" id="ed-save">Save</button></div></div>'}
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.forEach(function(c){c.items.forEach(function(it){n+=it.variants.length})});
  var h='<details><summary>Price list ('+n+' prices)</summary><div class="g"><p class="small">These prices show on the <a href="/prices" target="_blank" rel="noopener">price list page</a> after you tap Save. The "Updated" date changes by itself.</p>';
@@ -310,7 +310,14 @@ function opsClick(t){var d=t.dataset;
 function openEditor(){editing=true;stopRail();if(!ed){ed=document.createElement('aside');ed.className='ed';ed.setAttribute('aria-label','Edit site');document.body.appendChild(ed);wireEd()}paintEd();render()}
 function paintEd(){var open=[].map.call(ed.querySelectorAll('details'),function(d){return d.open}),sc=(ed.querySelector('.ed-b')||{}).scrollTop||0;ed.innerHTML=edHTML();
  if(open.length)ed.querySelectorAll('details').forEach(function(d,i){d.open=!!open[i]});ed.querySelectorAll('details.ra.hot').forEach(function(d){d.open=true});var b=ed.querySelector('.ed-b');if(b)b.scrollTop=sc}
-var rt=0;function live(){dirty=true;var st=document.getElementById('ed-state');if(st)st.textContent='Unsaved changes';clearTimeout(rt);rt=setTimeout(render,180)}
+var rt=0,at=0;function live(){dirty=true;var st=document.getElementById('ed-state');if(st)st.textContent='Saving soon…';clearTimeout(rt);rt=setTimeout(render,180);
+ /* autosave: every change is saved by itself ~1.5s after the owner stops typing */
+ if(canWrite&&sb){clearTimeout(at);at=setTimeout(autoSave,1500)}}
+var saving=false,again=false;function autoSave(){if(!dirty||!sb)return;if(saving){again=true;return}saving=true;var snap=JSON.stringify(state),st=document.getElementById('ed-state');if(st)st.textContent='Saving…';
+ sb.from('site').upsert({id:'main',data:state,updated_at:new Date().toISOString()}).then(function(r){saving=false;var st=document.getElementById('ed-state');
+  if(r.error){if(st)st.textContent='Not saved — tap Save. ('+r.error.message+')';toast('Could not save: '+r.error.message);return}
+  saved=snap;if(JSON.stringify(state)===snap)dirty=false;if(st)st.textContent='✓ Saved '+new Date().toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})+' · customers see it now';
+  if(again||dirty){again=false;clearTimeout(at);at=setTimeout(autoSave,600)}},function(){saving=false;var st=document.getElementById('ed-state');if(st)st.textContent='Not saved — check internet, then tap Save.'})}
 function wireEd(){
  ed.addEventListener('input',function(e){var t=e.target,d=t.dataset,s=S();
   if(d.pl){plSet(t);live();return}
@@ -396,7 +403,7 @@ function loginBox(msg){var b=document.getElementById('lg');if(!b){b=document.cre
  b.querySelector('#lg-new').addEventListener('click',function(){go(function(e,p){return sb.auth.signUp({email:e,password:p})})});
 }
 function afterLogin(){sb.rpc('is_owner').then(function(r){if(r.data===true){var b=document.getElementById('lg');if(b)b.remove();canWrite=true;openEditor();addOut();opsStart()}else{sb.auth.signOut();loginBox('This account cannot edit this shop.')}})}
-function addOut(){var o=document.createElement('button');o.className='tlink lgout';o.textContent='Log out';o.onclick=function(){sb.auth.signOut().then(function(){location.reload()})};document.body.appendChild(o)}
+function addOut(){render();document.addEventListener('click',function(e){if(!e.target.closest('#lgout'))return;if(dirty){autoSave();toast('Saving first…');setTimeout(function(){sb.auth.signOut().then(function(){location.reload()})},1800);return}sb.auth.signOut().then(function(){location.reload()})})}
 render();loadRemote().then(function(){var h=(location.hash||'').slice(1);if(h&&find(h))openView(h)});
 if(window.EP_MODE==='admin'){
  if(!(window.supabase&&window.supabase.createClient)){toast('Login could not load. Check your internet and reload.')}
