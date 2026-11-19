@@ -14,7 +14,7 @@
  ],
  "headers": [
   {
-   "source": "/(site.js|site.css|config.js|shop.js|ep.css|pricelist.js|motion.js|motion.css)",
+   "source": "/(site.js|site.css|config.js|shop.js|ep.css|pricelist.js|motion.js|motion.css|tiny.css)",
    "headers": [
     {
      "key": "Cache-Control",

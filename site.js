@@ -201,7 +201,9 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
   c.items.forEach(function(it,ii){var k='data-c="'+ci+'" data-i="'+ii+'"';
    h+='<div class="erow"><div class="top"><div class="thumb">'+(it.photo?'<img alt="" src="'+esc(it.photo)+'">':'')+'</div><div class="tools"><label class="up">'+(it.photo?'Change photo':'Add photo')+'<input type="file" accept="image/*" data-plup="'+ci+','+ii+'"></label>'+(it.photo?'<button data-plnophoto="'+ci+','+ii+'">Remove photo</button>':'')+'<label class="chk"><input type="checkbox" data-pl="show" '+k+(it.hidden?'':' checked')+'> Show on website</label></div></div>'+f('Model','data-pl="model" '+k,it.model,'iPhone 18 Pro Max')+f('Details (specs)','data-pl="spec" '+k,it.spec||'','e.g. 6.9-inch display · A20 Pro chip')+f('Colors','data-pl="colors" '+k,it.colors||'','e.g. Black, Silver');
    it.variants.forEach(function(v,vi){var kv=k+' data-v="'+vi+'"';
+    var cols=String(it.colors||'').split(/[,·]/).map(function(x){return x.trim()}).filter(Boolean),ncp=cols.filter(function(cn){return v.cp&&v.cp[cn]}).length;
     h+='<div class="pl-var"><div class="two">'+f('Storage / option','data-pl="vlabel" '+kv,v.label,'256GB')+f('Price (₱)','data-pl="vprice" inputmode="numeric" '+kv,v.price,'Blank = message for price')+'</div>'+
+     (cols.length?'<details class="cpx"'+(ncp?' open':'')+'><summary>Price per color'+(ncp?' · '+ncp+' set':'')+'</summary><p class="small">Only fill in a color whose dealer price is different. Blank = same as the price above.</p><div class="two">'+cols.map(function(cn){return f(cn,'data-pl="vcp" data-col="'+esc(cn)+'" inputmode="numeric" '+kv,(v.cp&&v.cp[cn])||'','Same price')}).join('')+'</div></details>':'')+
      '<div class="tools"><label class="chk"><input type="checkbox" data-pl="vavail" '+kv+(v.status!=='unavailable'?' checked':'')+'> Available</label>'+(it.variants.length>1?'<button class="del" data-plvdel="'+ci+','+ii+','+vi+'">Remove option</button>':'')+'</div></div>'});
    h+='<div class="tools"><button data-pladdv="'+ci+','+ii+'">+ Add storage option</button>'+(ii>0?'<button data-plmv="'+ci+','+ii+',-1">↑ Up</button>':'')+(ii<c.items.length-1?'<button data-plmv="'+ci+','+ii+',1">↓ Down</button>':'')+'<button class="del" data-pldel="'+ci+','+ii+'">Delete model</button></div></div>'});
   h+='<div class="tools"><button class="addrow" data-pladd="'+ci+'">+ Add model to '+esc(c.name)+'</button><button class="del" data-plcdel="'+ci+'">Delete category</button></div></div>'});
@@ -209,7 +211,8 @@ function plHTML(){var P=state.priceList;if(!P)return '';var n=0;P.categories.for
  return h}
 function plSet(t){var d=t.dataset,P=state.priceList,c=P.categories[+d.c],it=c&&c.items[+d.i],v=it&&it.variants[+d.v];
  if(d.pl==='cname')c.name=t.value;else if(d.pl==='model')it.model=t.value;else if(d.pl==='spec')it.spec=t.value;else if(d.pl==='colors')it.colors=t.value;else if(d.pl==='show')it.hidden=!t.checked;else if(d.pl==='vlabel')v.label=t.value;
- else if(d.pl==='vprice'){var x=t.value.replace(/[^0-9]/g,'');v.price=x?Number(x):''}else if(d.pl==='vavail')v.status=t.checked?'available':'unavailable';
+ else if(d.pl==='vprice'){var x=t.value.replace(/[^0-9]/g,'');v.price=x?Number(x):''}
+ else if(d.pl==='vcp'){var y=t.value.replace(/[^0-9]/g,'');v.cp=v.cp||{};if(y)v.cp[d.col]=Number(y);else delete v.cp[d.col]}else if(d.pl==='vavail')v.status=t.checked?'available':'unavailable';
  else if(d.pl==='note')P.note=t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean);else P[d.pl]=t.value;
  P.updated=today()}
 function plClick(t){var d=t.dataset,P=state.priceList;if(!P)return false;var a;
@@ -319,6 +322,7 @@ function wireEd(){
   else if(d.w){s.ways[+d.i][d.w]=t.value}else if(d.pm){s.promise[+d.i][d.pm]=t.value}else if(d.st){s.stats[+d.i][d.st]=t.value}else return;
   live()});
  ed.addEventListener('change',function(e){var t=e.target,d=t.dataset;
+  if(d.pl==='colors'){paintEd();return}
   if(opsChange(t))return;
   if(d.plup&&t.files&&t.files[0]){var pa=d.plup.split(',');toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var it=state.priceList.categories[+pa[0]].items[+pa[1]];it.photo=url;state.priceList.updated=today();live();paintEd()})});return}if(d.q&&t.tagName==='SELECT'){OPS.qst[d.q]=t.value;OPS.qlink='';paintEd();return}
   if(d.p==='status'||d.p==='featured'||d.p==='spotlight'){var p=find(d.id);if(d.p==='spotlight'&&t.checked)state.products.forEach(function(x){x.spotlight=false});p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false;live();if(d.p==='spotlight')paintEd()}

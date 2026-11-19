@@ -1,0 +1,150 @@
+/* Estilo Pinas — compact type layer (loaded last).
+   Owner's direction: tiny, readable text; chunky "Kura-style" display font ONLY for headings;
+   everything else (body, labels, buttons, prices) in regular weight; phone layout feels like a
+   tablet/MacBook (multi-column, small type) with thin separators between sections. */
+@font-face{font-family:"Titan One";src:url(/fonts/TitanOne-Regular.ttf) format("truetype");font-weight:400;font-style:normal;font-display:swap}
+:root{--disp:"Titan One","Bowlby One SC","Arial Black",system-ui,sans-serif;--price:"Sora","Manrope",system-ui,sans-serif}
+
+/* ---- weights: only headings are bold ---- */
+body,body *{font-weight:400!important}
+b,strong,th,dt,summary,button,.btn,label span,legend{font-weight:400!important}
+h1,h2,.disp,.cine h1,.qhi{font-family:var(--disp)!important;font-weight:400!important;letter-spacing:.005em;text-transform:none}
+h3,h4{font-family:var(--sans)!important;font-weight:500!important;letter-spacing:0}
+/* prices: plain Sora, not the display font, not bold */
+.pp,.pc2 .pp,.tw,.pd-price b,.pd-price .cash b,.sr-info .pr,.sr-info b,.fr-lb b,.rc-tot b,.rcpt b,.tot b,.kv b,.price-ex b,.it .n,[class*="price"] b{font-family:var(--price)!important;font-weight:400!important;letter-spacing:0}
+.pd-price .cash b{font-size:26px!important}.pd-price .card b{font-size:13px!important}
+.fr-lb b{font-size:12px!important;margin-top:1px}
+/* never break a word letter-by-letter */
+h1,h2,h3,.btn,button,.eyebrow,nav a,.tabbar a{word-break:normal;overflow-wrap:normal;hyphens:none}
+h1,h2,h3{text-wrap:balance}
+.btn,.tabbar a,.vsel button,.csel button,.viewtog button{white-space:nowrap}
+
+/* ---- base sizes (all screens, slightly smaller) ---- */
+body{font-size:14px;line-height:1.5}
+.eyebrow{font-size:10px!important;letter-spacing:.18em!important}
+.lead,.sh2 p{font-size:14px!important}
+.sh2 h2,section h2{font-size:clamp(20px,2.6vw,30px)!important;line-height:1.05!important;margin:4px 0 6px!important}
+.btn{font-size:12.5px!important;padding:10px 16px!important;min-height:0!important;letter-spacing:.04em}
+.btn.big{padding:12px 18px!important}
+
+/* ---- color chips (price can differ per color) ---- */
+.cs{display:grid;gap:6px}
+.csel{display:flex;flex-wrap:wrap;gap:6px}
+.csel button{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font:400 12.5px var(--sans);cursor:pointer;color:var(--ink)}
+.csel button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.vsel button{min-height:38px!important;font-size:12.5px!important;padding:0 12px!important}
+
+/* ---- section separators ---- */
+main>section+section{border-top:1px solid rgba(43,43,43,.1)}
+main>section.cine+section{border-top:0}
+
+/* ================= phones: tablet-like layout ================= */
+@media (max-width:700px){
+ body{font-size:12.5px}
+ .wrap{padding-inline:14px!important}
+ .eyebrow{font-size:9px!important}
+ .lead,.sh2 p,p{font-size:12.5px}
+ .sh2{gap:8px!important;align-items:end}
+ .sh2 h2,section h2{font-size:19px!important}
+ .sh2 a{font-size:10.5px!important;white-space:nowrap}
+ h3{font-size:13px!important}
+ .sec2{padding-top:22px!important;padding-bottom:4px}
+ main>section+section{margin-top:18px}
+ .btn{font-size:11px!important;padding:8px 12px!important}
+ .btn.big{padding:10px 14px!important}
+
+ /* hero: two columns like a laptop — words left, real gadget right */
+ .cine-in{grid-template-columns:1.1fr .9fr!important;gap:6px!important;padding-block:22px 18px!important;min-height:0!important;align-items:center}
+ .cine-logo{width:86px!important;margin-bottom:10px!important}
+ .cine h1{font-size:23px!important;line-height:1.02!important;margin-bottom:8px!important}
+ .cine p.sub{font-size:11px!important;margin-bottom:12px!important;line-height:1.45}
+ .cine .acts{flex-direction:column;align-items:flex-start;gap:6px!important}
+ .cine .acts .btn{font-size:10px!important;padding:7px 10px!important}
+ .cine-trust{font-size:9.5px!important;gap:3px 8px!important;margin-top:10px!important}
+ .h3{height:250px!important;min-height:0!important}
+ .h3-real{width:100%!important;max-width:200px}
+ .h3-chip,.h3-ring,.h3-orbit{display:none!important}
+ .h3-pop.p0{width:46%!important;left:-14%!important;bottom:0!important}.h3-pop.p1{width:38%!important;right:-8%!important;top:2%!important}
+
+ /* grids stay multi-column */
+ .g2{grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .g3,.g4{grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .catg{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+ .pgrid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .steps2{grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .trust{grid-template-columns:repeat(3,1fr)!important;gap:6px!important;font-size:10.5px}
+ .rail2{grid-auto-columns:44%!important}
+ .tile{padding:12px!important;border-radius:16px!important}
+ .tile h3,.it h3{font-size:12.5px!important;margin:4px 0!important}
+ .tile p,.it p{font-size:11.5px!important;line-height:1.45}
+
+ /* product cards */
+ .pc2{padding:10px!important}
+ .pc2 .cat{font-size:8.5px!important}
+ .pc2 h3{font-size:12.5px!important}
+ .pc2 .sp{font-size:10.5px!important;margin-bottom:6px!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .pc2 .pp{font-size:13px!important}
+
+ /* showroom + floating rail: compact */
+ .sr{--srh:230px}
+ .sr-stage{height:250px!important}
+ .sr-info h3,.sr-info .nm{font-size:14px!important}
+ .sr-info p{font-size:10.5px!important}
+ .fr-it{--fw:118px;width:118px!important}
+ .fr-track{padding:14px calc(50% - 59px) 84px!important}
+ .fr-lb{font-size:10.5px!important}
+
+ /* reviews */
+ .rvw{grid-auto-columns:72%!important}
+ .rvc blockquote{font-size:12px}
+ .rvh{font-size:11.5px}
+
+ /* product page: photo and info side by side like a tablet */
+ .pd{grid-template-columns:.9fr 1.1fr!important;gap:12px!important;align-items:start}
+ .pd-ph{position:sticky!important;top:70px;aspect-ratio:auto!important;min-height:180px}
+ .pd-info h1{font-size:20px!important;line-height:1.05}
+ .pd-spec{font-size:11px!important}
+ .pd-acts{display:grid!important;grid-template-columns:1fr 1fr;gap:6px!important}
+ .pd-acts .btn{font-size:10px!important;padding:9px 6px!important;text-align:center;justify-content:center}
+ .pd-price .cash b{font-size:21px!important}
+ .vsel{gap:5px!important}.vsel button{min-height:32px!important;font-size:11px!important;padding:0 9px!important}
+ .csel button{font-size:11px;padding:6px 9px}
+
+ /* detail overlay */
+ .ov-in{grid-template-columns:.85fr 1.15fr!important}
+ .ov-ph{border-radius:26px 0 0 26px!important;min-height:0!important}
+ .ov-tx h2{font-size:18px!important}
+
+ /* payment & order pages */
+ .opts{grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .opt h2{font-size:15px!important}.opt p{font-size:11px!important}
+ .hero h1,.ord h1,.qwrap h1{font-size:24px!important}
+
+ .foot-in{font-size:11px!important}
+ .tabbar a{font-size:9.5px!important}
+}
+@media (max-width:360px){.cine h1{font-size:20px!important}.catg{grid-template-columns:1fr 1fr!important}}
+.pd-price .cash b,.pd-price .cash b *{font-size:24px!important;line-height:1.1}
+@media (max-width:700px){
+ .pd-price{padding:10px!important;gap:6px!important}
+ .pd-price .cash b,.pd-price .cash b *{font-size:20px!important}
+ .pd-price .card{display:flex!important;justify-content:space-between;align-items:baseline;gap:6px;padding:7px 9px!important;font-size:10.5px!important}
+ .pd-price .card b{font-size:11.5px!important;text-align:right}
+}
+/* headings in caps like the Kura sample */
+h1,h2,.cine h1,.catt h3{text-transform:uppercase}
+.cine h1 .acc{text-transform:uppercase}
+.g2>*,.g3>*,.g4>*,.catg>*,.pgrid>*,.steps2>*,.opts>*,.pd>*{min-width:0}
+@media (max-width:700px){
+ .catt{flex-direction:column;align-items:flex-start;justify-content:space-between;gap:6px;padding:10px!important;min-height:86px!important}
+ .catt h3{font-size:13px!important}.catt p{font-size:10px!important}.catt svg{width:24px;height:24px;order:-1}
+ .price-ex{padding:10px!important;gap:2px!important}
+ .price-ex .row{font-size:10.5px!important;padding:5px 0!important;gap:6px}
+ .price-ex .row b{font-size:13px!important;white-space:nowrap}
+ .it .btn,.tile .btn{white-space:normal;text-align:center;line-height:1.3}
+ .ct .acts{display:flex;flex-wrap:wrap;gap:6px}
+}
+@media (max-width:700px){.pd-info h1{font-size:16px!important;line-height:1.1!important}.pd-info{overflow:hidden}.csel button{white-space:normal}}
+.btn.light{color:var(--ink)!important}
+@media (max-width:700px){.steps2 h3{font-size:12px!important}.steps2 p{font-size:11px!important}.steps2 .n,.steps2 span{font-size:9px!important}.faq summary{font-size:12.5px!important;padding:12px 14px!important}}
+@media (max-width:700px){.pd-info>*{min-width:0}.pd-acts .btn,.trust .tile{white-space:normal!important;line-height:1.25}.pd-info{overflow:visible}}

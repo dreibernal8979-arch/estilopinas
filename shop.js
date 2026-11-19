@@ -25,9 +25,14 @@ function qs(){var o={};location.search.slice(1).split('&').forEach(function(kv){
 function toQS(o){return Object.keys(o).filter(function(k){return o[k]!==''&&o[k]!=null}).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(o[k])}).join('&')}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 function today(){return new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}
+/* colors + per-color dealer price (owner sets them per storage option in the editor) */
+function colorsOf(x){return String(x||'').split(/[,·]/).map(function(c){return c.trim()}).filter(Boolean)}
+function cprice(v,c){var p=c&&v&&v.cp?num(v.cp[c]):0;return p>0?p:(v?num(v.price):0)}
+function withColor(it,c){if(!it)return null;if(!c||!it.colors||it.colors.indexOf(c)<0)return it;var o=Object.assign({},it);o.color=c;o.price=cprice(it,c);o.vlabel=it.label;o.label=it.label+' · '+c;o.name=it.name+' · '+c;return o}
+function cur(st){return withColor(byKey(st.key),st.color)}
 /* flat list of every priced option from the price list */
 function items(){var out=[];(DATA.priceList.categories||[]).forEach(function(c){(c.items||[]).forEach(function(it){(it.variants||[]).forEach(function(v,i){
- out.push({key:it.id+'~'+i,id:it.id,vi:i,cat:c.name,model:it.model,label:v.label||'',price:num(v.price),off:v.status==='unavailable',name:it.model+(v.label?' '+v.label:''),photo:it.photo||''})})})});return out}
+ out.push({key:it.id+'~'+i,id:it.id,vi:i,cat:c.name,model:it.model,label:v.label||'',vlabel:v.label||'',color:'',price:num(v.price),cp:v.cp||null,colors:colorsOf(it.colors),off:v.status==='unavailable',name:it.model+(v.label?' '+v.label:''),photo:it.photo||''})})})});return out}
 function findItem(id,label){var L=items();return L.find(function(x){return x.id===id&&(label==null||x.label===label)})||L.find(function(x){return x.id===id})||null}
 
 /* ---------- payment engine (one place for all math) ---------- */
@@ -66,19 +71,19 @@ function shell(main){root.innerHTML=header()+'<main id="main">'+main+'</main>'+f
 /* ---------- bag (kept in this browser; sent to us as one order request) ---------- */
 function bagGet(){try{var b=JSON.parse(localStorage.getItem('ep_bag')||'[]');return Array.isArray(b)?b:[]}catch(e){return window.__bag||[]}}
 function bagSet(b){window.__bag=b;try{localStorage.setItem('ep_bag',JSON.stringify(b))}catch(e){}}
-function bagLines(){var M=models();return bagGet().map(function(x){var m=M.find(function(k){return k.id===x.m});var v=m&&m.variants.find(function(k){return k.label===x.v});return m&&v&&v.price&&!v.off?{m:m,v:v,q:Math.min(5,Math.max(1,x.q||1))}:null}).filter(Boolean)}
-function bagTotal(){return bagLines().reduce(function(a,l){return a+l.v.price*l.q},0)}
+function bagLines(){var M=models();return bagGet().map(function(x){var m=M.find(function(k){return k.id===x.m});var v=m&&m.variants.find(function(k){return k.label===x.v});var c=m&&x.c&&m.colorList.indexOf(x.c)>-1?x.c:'';return m&&v&&v.price&&!v.off?{m:m,v:v,c:c,p:cprice(v,c),t:v.label+(c?' · '+c:''),q:Math.min(5,Math.max(1,x.q||1))}:null}).filter(Boolean)}
+function bagTotal(){return bagLines().reduce(function(a,l){return a+l.p*l.q},0)}
 function bagCount(pop){var n=bagLines().reduce(function(a,l){return a+l.q},0),b=document.getElementById('bagn');if(!b)return;b.textContent=n;b.classList.toggle('has',n>0);if(pop){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}}
-function bagAdd(m,v,fromEl){var b=bagGet(),f=b.find(function(x){return x.m===m.id&&x.v===v.label});if(f)f.q=Math.min(5,(f.q||1)+1);else b.push({m:m.id,v:v.label,q:1});bagSet(b);
+function bagAdd(m,v,fromEl,c){c=c||'';var b=bagGet(),f=b.find(function(x){return x.m===m.id&&x.v===v.label&&(x.c||'')===c});if(f)f.q=Math.min(5,(f.q||1)+1);else b.push({m:m.id,v:v.label,c:c,q:1});bagSet(b);
  var t=document.getElementById('bagbtn');if(fromEl&&t&&!(window.EPM&&EPM.RM)&&m.photo){var a=fromEl.getBoundingClientRect(),c=t.getBoundingClientRect(),fx=document.createElement('div');fx.className='addfx';fx.innerHTML='<img src="'+esc(m.photo)+'" alt="">';document.body.appendChild(fx);
   fx.animate([{transform:'translate('+(a.left+a.width/2-27)+'px,'+(a.top+a.height/2-27)+'px) scale(1)'},{transform:'translate('+(c.left-7)+'px,'+(c.top-7)+'px) scale(.3)',opacity:.4}],{duration:650,easing:'cubic-bezier(.5,0,.2,1)'}).onfinish=function(){fx.remove();bagCount(true)}}else bagCount(true);
- toast('Added to bag: '+m.model+' '+v.label)}
+ toast('Added to bag: '+m.model+' '+v.label+(c?' · '+c:''))}
 function openBag(){var d=document.getElementById('drawer'),L=bagLines(),f=fee();
- document.getElementById('baglst').innerHTML=L.length?L.map(function(l,i){return '<div class="bi"><div class="ph">'+(l.m.photo?'<img src="'+esc(l.m.photo)+'" alt="">':'')+'</div><div><b>'+esc(l.m.model)+'</b><span>'+esc(l.v.label)+' · '+php(l.v.price)+'</span></div><div class="q"><button type="button" data-q="'+i+'" data-d="-1" aria-label="Less">−</button><span>'+l.q+'</span><button type="button" data-q="'+i+'" data-d="1" aria-label="More">+</button></div></div>'}).join(''):'<p class="empty">Your bag is empty.<br><a href="/gadgets">Browse gadgets</a></p>';
+ document.getElementById('baglst').innerHTML=L.length?L.map(function(l,i){return '<div class="bi"><div class="ph">'+(l.m.photo?'<img src="'+esc(l.m.photo)+'" alt="">':'')+'</div><div><b>'+esc(l.m.model)+'</b><span>'+esc(l.t)+' · '+php(l.p)+'</span></div><div class="q"><button type="button" data-q="'+i+'" data-d="-1" aria-label="Less">−</button><span>'+l.q+'</span><button type="button" data-q="'+i+'" data-d="1" aria-label="More">+</button></div></div>'}).join(''):'<p class="empty">Your bag is empty.<br><a href="/gadgets">Browse gadgets</a></p>';
  document.getElementById('bagft').innerHTML=L.length?'<div class="tot"><span>Cash total</span><b>'+php(bagTotal())+'</b></div><p class="mini" style="margin:0">Card adds '+f+'% on the swiped amount. Choose how to pay on the next step.</p><a class="btn big" href="/order?bag=1">Send order request</a>':'';
  d.classList.add('open');d.setAttribute('aria-hidden','false')}
 function bagClick(e){var t=e.target.closest('[data-close],[data-q]');if(!t)return;if(t.dataset.close){var d=document.getElementById('drawer');d.classList.remove('open');d.setAttribute('aria-hidden','true');return}
- var L=bagLines(),l=L[+t.dataset.q],b=bagGet(),k=b.findIndex(function(x){return x.m===l.m.id&&x.v===l.v.label});if(k<0)return;b[k].q=(b[k].q||1)+Number(t.dataset.d);if(b[k].q<1)b.splice(k,1);if(b[k]&&b[k].q>5)b[k].q=5;bagSet(b);bagCount(true);openBag()}
+ var L=bagLines(),l=L[+t.dataset.q],b=bagGet(),k=b.findIndex(function(x){return x.m===l.m.id&&x.v===l.v.label&&(x.c||'')===l.c});if(k<0)return;b[k].q=(b[k].q||1)+Number(t.dataset.d);if(b[k].q<1)b.splice(k,1);if(b[k]&&b[k].q>5)b[k].q=5;bagSet(b);bagCount(true);openBag()}
 window.__dev=function(id){var m=models().find(function(x){return x.id===id});return m?devHTML(m):''};
 
 /* ---------- data ---------- */
@@ -95,21 +100,24 @@ function picker(sel,id){var L=items(),cats=[];L.forEach(function(x){if(cats.inde
 function byKey(k){return items().find(function(x){return x.key===k})||null}
 
 /* ---------- calculator widget (used on /pay, /order) ---------- */
+function colSel(st){var it=byKey(st.key);if(!it||!it.colors.length)return '';if(it.colors.indexOf(st.color)<0)st.color=it.colors[0];
+ return '<label class="fl"><span>Color</span><select id="c-col">'+it.colors.map(function(c){var p=cprice(it,c);return '<option'+(c===st.color?' selected':'')+' value="'+esc(c)+'">'+esc(c)+(p!==it.price?' — '+php(p):'')+'</option>'}).join('')+'</select></label>'}
 function calcHTML(st){var f=fee();
- return '<div class="calc" id="calc"><div class="calc-in">'+(st.key==='bag'?bagSummary():picker(st.key,'c-item'))+
+ return '<div class="calc" id="calc"><div class="calc-in">'+(st.key==='bag'?bagSummary():picker(st.key,'c-item')+'<div id="c-col-w">'+colSel(st)+'</div>')+
  '<label class="fl" id="c-custom-w"'+(st.key==='custom'?'':' hidden')+'><span>Price (₱)</span><input id="c-custom" inputmode="numeric" placeholder="e.g. 50000" value="'+(st.custom||'')+'"></label>'+
  '<div class="seg" role="radiogroup" aria-label="Payment method">'+[['cash','Cash'],['card','Credit card'],['split','Split']].map(function(m){return '<button type="button" role="radio" aria-checked="'+(st.method===m[0])+'" data-m="'+m[0]+'">'+m[1]+'</button>'}).join('')+'</div>'+
  '<div class="split-w"'+(st.method==='split'?'':' hidden')+'><label class="fl"><span>Amount on card</span><input id="c-card" inputmode="numeric" value="'+(st.card||'')+'"></label><input type="range" id="c-range" min="0" step="500" aria-label="Amount on card"><div class="rng-l"><span>All cash</span><span>All card</span></div></div>'+
  '<div class="feeby-w"'+(st.method==='cash'?' hidden':'')+'><p class="mini">Pay the '+f+'% terminal fee:</p><div class="seg sm" role="radiogroup" aria-label="Pay the fee">'+[['cash','In cash'],['card','Add to card']].map(function(m){return '<button type="button" role="radio" aria-checked="'+(st.feeBy===m[0])+'" data-fb="'+m[0]+'">'+m[1]+'</button>'}).join('')+'</div></div>'+
  '</div><div class="calc-out" id="c-out" aria-live="polite"></div></div>'}
 function wireCalc(st,onChange){var el=document.getElementById('calc');
- function price(){var it=byKey(st.key);return st.key==='bag'?bagTotal():st.key==='custom'?num(st.custom):it?it.price:0}
- function draw(anim){var it=byKey(st.key),p=price(),out=document.getElementById('c-out');var rg=document.getElementById('c-range');
+ function price(){var it=cur(st);return st.key==='bag'?bagTotal():st.key==='custom'?num(st.custom):it?it.price:0}
+ function draw(anim){var it=cur(st),p=price(),out=document.getElementById('c-out');var rg=document.getElementById('c-range');
   if(rg){rg.max=String(p||0);rg.value=String(Math.min(num(st.card),p))}
   if(!p){out.innerHTML='<div class="rc-empty">Choose a gadget to see the full breakdown.</div>';onChange&&onChange(null,null);return}
   if(st.method==='split'&&!num(st.card)){st.card=String(Math.round(p/2/500)*500)}
   var q=quote(p,st.method,st.card,st.feeBy);out.innerHTML=receipt(it,q,{anim:anim,title:st.key==='bag'?bagTitle():'Your amount'});onChange&&onChange(it,q)}
- el.addEventListener('change',function(e){if(e.target.id==='c-item'){st.key=e.target.value;st.card='';document.getElementById('c-custom-w').hidden=st.key!=='custom';draw(true)}});
+ el.addEventListener('change',function(e){if(e.target.id==='c-item'){st.key=e.target.value;st.card='';st.color='';document.getElementById('c-custom-w').hidden=st.key!=='custom';var cw=document.getElementById('c-col-w');if(cw)cw.innerHTML=colSel(st);draw(true)}
+  if(e.target.id==='c-col'){st.color=e.target.value;st.card='';draw(true)}});
  el.addEventListener('input',function(e){var t=e.target;if(t.id==='c-custom'){st.custom=t.value.replace(/[^0-9]/g,'');draw(false)}
   if(t.id==='c-card'){st.card=t.value.replace(/[^0-9]/g,'');draw(false)}
   if(t.id==='c-range'){st.card=t.value;document.getElementById('c-card').value=Number(t.value).toLocaleString('en-PH');draw(false)}});
@@ -118,11 +126,11 @@ function wireCalc(st,onChange){var el=document.getElementById('calc');
   if(b.dataset.fb){st.feeBy=b.dataset.fb;el.querySelectorAll('[data-fb]').forEach(function(x){x.setAttribute('aria-checked',String(x===b))});draw(true)}});
  draw(true)}
 function stFromQS(){var o=qs();var it=o.m?findItem(o.m,o.v):null;
- return {key:it?it.key:(o.price?'custom':''),custom:o.price||'',method:['cash','card','split'].indexOf(o.pay)>-1?o.pay:'cash',card:o.card||'',feeBy:o.fee==='card'?'card':'cash',name:o.name||''}}
-function stToQS(st){var it=byKey(st.key);return toQS({m:it?it.id:'',v:it?it.label:'',price:st.key==='custom'?st.custom:'',pay:st.method,card:st.method==='split'?st.card:'',fee:st.method==='cash'?'':st.feeBy})}
+ return {key:it?it.key:(o.price?'custom':''),color:o.c||'',custom:o.price||'',method:['cash','card','split'].indexOf(o.pay)>-1?o.pay:'cash',card:o.card||'',feeBy:o.fee==='card'?'card':'cash',name:o.name||''}}
+function stToQS(st){var it=cur(st);return toQS({m:it?it.id:'',v:it?it.vlabel:'',c:it&&it.color||'',price:st.key==='custom'?st.custom:'',pay:st.method,card:st.method==='split'?st.card:'',fee:st.method==='cash'?'':st.feeBy})}
 
-function bagTitle(){var L=bagLines();return L.length===1?L[0].m.model+' '+L[0].v.label+(L[0].q>1?' ×'+L[0].q:''):L.length+' items in your bag'}
-function bagSummary(){return '<div class="fl"><span>Your bag</span>'+bagLines().map(function(l){return '<div class="kv"><span>'+esc(l.m.model)+' '+esc(l.v.label)+(l.q>1?' ×'+l.q:'')+'</span><b>'+php(l.v.price*l.q)+'</b></div>'}).join('')+'<a class="mini" href="/gadgets">+ Add more gadgets</a></div>'}
+function bagTitle(){var L=bagLines();return L.length===1?L[0].m.model+' '+L[0].t+(L[0].q>1?' ×'+L[0].q:''):L.length+' items in your bag'}
+function bagSummary(){return '<div class="fl"><span>Your bag</span>'+bagLines().map(function(l){return '<div class="kv"><span>'+esc(l.m.model)+' '+esc(l.t)+(l.q>1?' ×'+l.q:'')+'</span><b>'+php(l.p*l.q)+'</b></div>'}).join('')+'<a class="mini" href="/gadgets">+ Add more gadgets</a></div>'}
 /* ---------- PAGE: payment guide ---------- */
 function pagePay(){var p=P(),f=fee(),st=stFromQS();
  shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>Payment guide</p><h1 class="disp">Pay your way.</h1><p class="lead">See the full cost before you order — cash, credit card, or a mix of both. Same dealer price either way.</p></div></section>'+
@@ -159,7 +167,7 @@ function pageQuote(){var o=qs();var fp=location.pathname.match(/^\/for\/([^\/?#]
  if(o.c){rpc('get_quote',{p_code:o.c}).then(function(r){if(!r||!r.price)throw 0;var it=r.m?findItem(r.m,r.v):null;var q=quote(r.price,r.pay||'cash',r.card,r.fee);
    show(it&&it.price===r.price?it:{cat:it?it.cat:'Item',model:r.title||(it?it.model:'Quoted item'),label:r.title?'':(r.v||''),name:r.title||'',photo:it?it.photo:'',id:it?it.id:''},q,{customer:r.name,code:o.c,note:r.note,orderQS:toQS({q:o.c})})})
   .catch(function(){shell('<section class="wrap qwrap"><h1 class="disp">Quote not found</h1><p class="lead">This link may have expired. Message us and we will send a fresh one.</p><a class="btn" href="'+esc(msgr('Hi Estilo Pinas! My quotation link is not opening.'))+'">Message us</a></section>')});return}
- var st=stFromQS(),it=byKey(st.key),price=st.key==='custom'?num(st.custom):it?it.price:0;
+ var st=stFromQS(),it=cur(st),price=st.key==='custom'?num(st.custom):it?it.price:0;
  if(!price){location.replace('/payment-guide');return}
  show(it,quote(price,st.method,st.card,st.feeBy),{customer:o.name,orderQS:stToQS(st)})}
 
@@ -178,7 +186,7 @@ function pageOrder(){var o=qs(),st=stFromQS(),saved=null,step=0;if(o.bag&&bagLin
    '<label class="fl"><span>Notes (color, schedule, questions)</span><textarea name="notes" maxlength="500" rows="2">'+esc(data.notes)+'</textarea></label>'+
    '<label class="rad"><input type="checkbox" name="consent"'+(data.consent?' checked':'')+'> You may contact me about this order by text, call or Messenger.</label>'+
    '<p class="err" id="ferr" role="alert"></p><div class="calc-acts"><button class="btn ghost" type="button" id="b1">Back</button><button class="btn" type="submit">Continue</button></div></form>';
-  if(step===2){var it=byKey(st.key),price=st.key==='bag'?bagTotal():st.key==='custom'?num(st.custom):it?it.price:0,q=quote(price,st.method,st.card,st.feeBy);
+  if(step===2){var it=cur(st),price=st.key==='bag'?bagTotal():st.key==='custom'?num(st.custom):it?it.price:0,q=quote(price,st.method,st.card,st.feeBy);
    main+=receipt(it,q,{customer:data.name,title:st.key==='bag'?bagTitle():''})+'<dl class="rev"><div><dt>Mobile</dt><dd>'+esc(data.mobile)+'</dd></div>'+(data.email?'<div><dt>Email</dt><dd>'+esc(data.email)+'</dd></div>':'')+'<div><dt>Delivery</dt><dd>'+esc({pickup:'Store pick-up',meetup:'Meet-up COD',sameday:'Same-day COD',lbc:'LBC'}[data.how])+(data.addr?' · '+esc(data.addr):'')+'</dd></div>'+(data.notes?'<div><dt>Notes</dt><dd>'+esc(data.notes)+'</dd></div>':'')+'</dl>'+
     '<p class="mini">This sends an order request. Nothing is paid yet — we will confirm stock and the final price with you first.</p><p class="err" id="serr" role="alert"></p><div class="calc-acts"><button class="btn ghost" type="button" id="b2">Back</button><button class="btn" type="button" id="send">Send order request</button></div>'}
   main+='</section>';shell(main);window.scrollTo(0,0);
@@ -187,8 +195,8 @@ function pageOrder(){var o=qs(),st=stFromQS(),saved=null,step=0;if(o.bag&&bagLin
    f.onsubmit=function(e){e.preventDefault();var fd=new FormData(f);data.name=String(fd.get('name')).trim();data.mobile=String(fd.get('mobile')).trim();data.email=String(fd.get('email')).trim();data.how=String(fd.get('how')||'pickup');data.addr=String(fd.get('addr')).trim();data.notes=String(fd.get('notes')).trim();data.consent=!!fd.get('consent');
     var er='';if(data.name.length<2)er='Please enter your name.';else if(!/^(\+?63|0)9\d{9}$/.test(data.mobile.replace(/[\s-]/g,'')))er='Please enter a valid PH mobile number (09XX XXX XXXX).';else if(data.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))er='Please check your email.';else if(data.how!=='pickup'&&data.addr.length<4)er='Please add your address or meet-up place.';
     if(er){document.getElementById('ferr').textContent=er;return}step=2;go()}}
-  if(step===2){document.getElementById('b2').onclick=function(){step=1;go()};document.getElementById('send').onclick=function(){var b=this;b.disabled=true;b.textContent='Sending…';var it=byKey(st.key);
-   rpc('submit_order',{p:{items:st.key==='bag'?bagLines().map(function(l){return {item_id:l.m.id,variant:l.v.label,qty:l.q}}):undefined,item_id:it?it.id:'',variant:it?it.label:'',custom_price:st.key==='custom'?num(st.custom):0,quote_code:o.q||'',pay:st.method,card:num(st.card),fee_by:st.feeBy,name:data.name,mobile:data.mobile,email:data.email,how:data.how,addr:data.addr,notes:data.notes,consent:data.consent,source:sessionStorageGet('ep_src')||document.referrer.slice(0,120)}})
+  if(step===2){document.getElementById('b2').onclick=function(){step=1;go()};document.getElementById('send').onclick=function(){var b=this;b.disabled=true;b.textContent='Sending…';var it=cur(st);
+   rpc('submit_order',{p:{items:st.key==='bag'?bagLines().map(function(l){return {item_id:l.m.id,variant:l.v.label,color:l.c,qty:l.q}}):undefined,item_id:it?it.id:'',variant:it?it.vlabel:'',color:it&&it.color||'',custom_price:st.key==='custom'?num(st.custom):0,quote_code:o.q||'',pay:st.method,card:num(st.card),fee_by:st.feeBy,name:data.name,mobile:data.mobile,email:data.email,how:data.how,addr:data.addr,notes:(function(){var cs=st.key==='bag'?bagLines().filter(function(l){return l.c}).map(function(l){return l.m.model+' '+l.v.label+': '+l.c}):(it&&it.color?[it.color]:[]);return (cs.length?'Color: '+cs.join('; ')+(data.notes?' · ':''):'')+data.notes})(),consent:data.consent,source:sessionStorageGet('ep_src')||document.referrer.slice(0,120)}})
    .then(function(r){if(st.key==='bag')bagSet([]);done(r,it||(st.key==='bag'?{name:bagTitle()}:null))}).catch(function(err){b.disabled=false;b.textContent='Send order request';document.getElementById('serr').innerHTML='Could not send: '+esc(err.message)+'. You can also <a href="'+esc(msgr('Hi Estilo Pinas! I want to order '+(it?it.name:'')+'.'))+'" target="_blank" rel="noopener">message us on Facebook</a>.'})}}}
  function done(r,it){shell('<section class="wrap ord okk"><p class="eyebrow"><span class="dot"></span>Request received</p><h1 class="disp">Salamat, '+esc(data.name.split(' ')[0])+'!</h1><p class="lead">Your reference number is</p><p class="ref">'+esc(r.ref)+'</p><p>We will contact you at <b>'+esc(data.mobile)+'</b> to confirm stock and the final price. Nothing has been charged.</p>'+
   '<div class="calc-acts"><a class="btn" href="'+esc(msgr('Hi Estilo Pinas! I sent order request '+r.ref+' for '+(it?it.name:'a gadget')+'.'))+'" target="_blank" rel="noopener">Tell us on Messenger</a><a class="btn ghost" href="/">Back to shop</a></div></section>')}
@@ -263,8 +271,8 @@ function pageAsk(){var s=S(),pay=P(),L=items().filter(function(x){return x.price
 /* ---------- catalog helpers (models from the price list) ---------- */
 var ICON={iphone:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3.4"/><path d="M10.5 4.6h3"/></svg>',macbook:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.6"/><path d="M2 18.5h20"/></svg>',ipad:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.6"/></svg>'};
 function iconKey(c){var k=String((c&&(c.id||c.name))||'').toLowerCase();return k.indexOf('mac')>-1?'macbook':k.indexOf('pad')>-1?'ipad':'iphone'}
-function models(){var out=[];(DATA.priceList.categories||[]).forEach(function(c){(c.items||[]).forEach(function(it){if(it.hidden)return;var vs=(it.variants||[]).map(function(v,i){return {i:i,label:v.label||'',price:num(v.price),off:v.status==='unavailable'}});
- var av=vs.filter(function(v){return !v.off&&v.price});out.push({id:it.id,cat:c.name,catId:c.id||c.name,icon:iconKey(c),model:it.model,spec:it.spec||'',colors:it.colors||'',photo:it.photo||'',variants:vs,from:av.length?Math.min.apply(null,av.map(function(v){return v.price})):0,avail:av.length>0})})});return out}
+function models(){var out=[];(DATA.priceList.categories||[]).forEach(function(c){(c.items||[]).forEach(function(it){if(it.hidden)return;var vs=(it.variants||[]).map(function(v,i){return {i:i,label:v.label||'',price:num(v.price),cp:v.cp||null,off:v.status==='unavailable'}}),cl=colorsOf(it.colors);
+ var av=vs.filter(function(v){return !v.off&&v.price}),lo=[];av.forEach(function(v){lo.push(v.price);cl.forEach(function(c){lo.push(cprice(v,c))})});out.push({id:it.id,cat:c.name,catId:c.id||c.name,icon:iconKey(c),model:it.model,spec:it.spec||'',colors:it.colors||'',photo:it.photo||'',colorList:cl,variants:vs,from:lo.length?Math.min.apply(null,lo):0,avail:av.length>0})})});return out}
 function devHTML(m){var k=m.icon;return '<div class="dev">'+(k==='macbook'?'<div class="d-mac"><i></i><b></b></div>':k==='ipad'?'<div class="d-pad"><i></i></div>':'<div class="d-ph"></div>')+'<small>Photo coming soon</small></div>'}
 function pic(m,eager){return m.photo?'<img src="'+esc(m.photo)+'" alt="'+esc(m.model)+'"'+(eager?' decoding="async"':' loading="lazy" decoding="async"')+' onerror="if(!this.dataset.r&&this.src.indexOf(\'/sb/\')>0&&window.EP_CONFIG&&EP_CONFIG.direct){this.dataset.r=1;this.src=EP_CONFIG.direct+this.src.split(\'/sb\')[1];return}this.replaceWith(document.createRange().createContextualFragment(window.__dev&&window.__dev(\''+esc(m.id)+'\')||\'\'))">':devHTML(m)}
 function pnum(n){return '<i>₱</i>'+Math.round(n).toLocaleString('en-PH')}
@@ -288,22 +296,24 @@ function contactHTML(){var s=S();return '<div class="ct g2"><div class="tile it"
  '<div class="acts"><a class="btn" href="'+esc(s.fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.mapsQuery||'Estilo Pinas Gadget Shop')+'" target="_blank" rel="noopener">Google Maps</a><a class="btn ghost" href="https://waze.com/ul?q='+encodeURIComponent(s.mapsQuery||'Estilo Pinas Gadget Shop')+'" target="_blank" rel="noopener">Waze</a></div></div>'+
  '<div class="tile blue it"><span class="n">DELIVERY &amp; PICKUP</span>'+deliveryList().map(function(x){return '<h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p>'}).join('')+'</div></div>'}
 
+function csHTML(m){return m.colorList.length?'<div class="cs"><span class="lbl2">Color</span><div class="csel" role="group" aria-label="Choose color">'+m.colorList.map(function(c,i){return '<button type="button" data-c="'+esc(c)+'"'+(i===0?' aria-pressed="true"':' aria-pressed="false"')+'>'+esc(c)+'</button>'}).join('')+'</div></div>':''}
+function csWire(root,on){var g=root.querySelector('.csel');if(!g)return;g.addEventListener('click',function(e){var b=e.target.closest('button[data-c]');if(!b)return;g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))});on(b.dataset.c)})}
 /* ---------- detail overlay (FLIP from showroom / cards) ---------- */
-function openDetail(m,fromEl){var sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var f=fee();
+function openDetail(m,fromEl){var sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var f=fee(),col=m.colorList[0]||'';
  var ov=document.createElement('div');ov.className='ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',m.model);
- ov.innerHTML='<div class="ov-in"><button class="ov-x" type="button" aria-label="Close">×</button><div class="ov-ph">'+pic(m,true)+'</div><div class="ov-tx"><span class="lbl2">'+esc(m.cat)+'</span><h2 class="disp" style="font-size:clamp(24px,3.4vw,34px);margin:0">'+esc(m.model)+'</h2>'+(m.spec?'<p class="pd-spec">'+esc(m.spec)+'</p>':'')+(m.colors?'<p class="pd-col"><b>COLORS</b>'+esc(m.colors)+'</p>':'')+
+ ov.innerHTML='<div class="ov-in"><button class="ov-x" type="button" aria-label="Close">×</button><div class="ov-ph">'+pic(m,true)+'</div><div class="ov-tx"><span class="lbl2">'+esc(m.cat)+'</span><h2 class="disp" style="font-size:clamp(24px,3.4vw,34px);margin:0">'+esc(m.model)+'</h2>'+(m.spec?'<p class="pd-spec">'+esc(m.spec)+'</p>':'')+csHTML(m)+
   '<div class="vsel" role="group" aria-label="Choose option">'+m.variants.map(function(v,i){return '<button type="button" data-i="'+i+'"'+(v.off||!v.price?' disabled':'')+'>'+esc(v.label||'Standard')+(v.off?' · unavailable':'')+'</button>'}).join('')+'</div>'+
   '<div class="tile pd-price"><div class="cash"><span>CASH PRICE</span><b><i>₱</i><span class="tw" data-v="0"></span></b></div><div class="card"><span>Credit card (+'+f+'%)</span><b class="cp"></b></div><div class="card"><span>Stock</span><b class="stk"></b></div></div>'+
   '<div class="pd-acts"><button class="btn big" type="button" data-add>Add to bag</button><a class="btn ghost big" data-ord>Order now</a><a class="btn ghost big" href="/product/'+encodeURIComponent(m.id)+'">Full details <span class="ar">→</span></a></div><p class="pd-note">'+esc(payMethods().join(' · '))+' · We confirm stock and the latest price before you pay.</p></div></div>';
  document.body.appendChild(ov);document.body.style.overflow='hidden';var img=ov.querySelector('.ov-ph img,.ov-ph .dev');if(fromEl&&window.EPM)EPM.flip(fromEl.querySelector('img,.dev')||fromEl,img);
  function draw(){var v=m.variants[sel];ov.querySelectorAll('.vsel button').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.i===sel))});
-  window.EPM?EPM.tween(ov.querySelector('.tw'),v.price):ov.querySelector('.tw').textContent=v.price.toLocaleString('en-PH');ov.querySelector('.cp').textContent=php(v.price*(1+f/100));ov.querySelector('.stk').textContent=v.off?'Unavailable':'Available — we confirm before payment';
-  ov.querySelector('[data-ord]').href='/order?'+toQS({m:m.id,v:v.label,pay:'cash'})}
+  var pr=cprice(v,col);window.EPM?EPM.tween(ov.querySelector('.tw'),pr):ov.querySelector('.tw').textContent=pr.toLocaleString('en-PH');ov.querySelector('.cp').textContent=php(pr*(1+f/100));ov.querySelector('.stk').textContent=v.off?'Unavailable':'Available — we confirm before payment';
+  ov.querySelector('[data-ord]').href='/order?'+toQS({m:m.id,v:v.label,c:col,pay:'cash'})}
  function close(){ov.remove();document.body.style.overflow='';document.removeEventListener('keydown',key);if(fromEl&&fromEl.focus)try{fromEl.focus({preventScroll:true})}catch(_){}}
  function key(e){if(e.key==='Escape')close()}document.addEventListener('keydown',key);
  ov.addEventListener('click',function(e){if(e.target===ov||e.target.closest('.ov-x'))return close();var b=e.target.closest('.vsel button');if(b&&!b.disabled){sel=+b.dataset.i;draw()}
-  if(e.target.closest('[data-add]')){var v=m.variants[sel];bagAdd(m,v,ov.querySelector('.ov-ph'));}});
- draw();ov.querySelector('.ov-x').focus()}
+  if(e.target.closest('[data-add]')){var v=m.variants[sel];bagAdd(m,v,ov.querySelector('.ov-ph'),col);}});
+ csWire(ov,function(c){col=c;draw()});draw();ov.querySelector('.ov-x').focus()}
 
 /* ---------- real Facebook reviews (owner-editable in admin) ---------- */
 function reviewsHTML(){var s=S(),L=(s.reviews||[]).filter(function(r){return r&&r.on!==false&&r.t});
@@ -356,8 +366,8 @@ function pageGadgets(){var o=qs(),cat=o.cat||'all',q='';var cats=[];(DATA.priceL
 /* ---------- PAGE: product ---------- */
 function pageProduct(){var slug=decodeURIComponent((location.pathname.split('/product/')[1]||qs().id||'').replace(/\/$/,''));var m=models().find(function(x){return x.id===slug});
  if(!m){shell('<section class="hero"><div class="wrap"><h1 class="disp">Gadget not found</h1><p class="lead">It may have been removed. See all available gadgets.</p><p><a class="btn" href="/gadgets">See gadgets</a></p></div></section>');return}
- document.title=m.model+' · Estilo Pinas';var sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var f=fee();
- shell('<section class="wrap"><p style="margin:16px 0 0;font-size:13px"><a href="/gadgets" style="color:var(--mute)">← All gadgets</a></p><div class="pd"><div class="tile pd-ph">'+pic(m)+'</div><div class="pd-info"><span class="lbl2">'+esc(m.cat)+'</span><h1>'+esc(m.model)+'</h1>'+(m.spec?'<p class="pd-spec">'+esc(m.spec)+'</p>':'')+(m.colors?'<p class="pd-col"><b>COLORS</b>'+esc(m.colors)+'</p>':'')+
+ document.title=m.model+' · Estilo Pinas';var sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var f=fee(),col=m.colorList[0]||'';
+ shell('<section class="wrap"><p style="margin:16px 0 0;font-size:13px"><a href="/gadgets" style="color:var(--mute)">← All gadgets</a></p><div class="pd"><div class="tile pd-ph">'+pic(m)+'</div><div class="pd-info"><span class="lbl2">'+esc(m.cat)+'</span><h1>'+esc(m.model)+'</h1>'+(m.spec?'<p class="pd-spec">'+esc(m.spec)+'</p>':'')+csHTML(m)+
   '<div><span class="lbl2">Storage / option</span><div class="vsel" role="group" aria-label="Choose option" style="margin-top:8px">'+m.variants.map(function(v,i){return '<button type="button" data-i="'+i+'"'+(v.off||!v.price?' disabled':'')+'>'+esc(v.label||'Standard')+(v.off?' · unavailable':'')+'</button>'}).join('')+'</div></div>'+
   '<div class="tile pd-price" id="pp" aria-live="polite"></div><div class="pd-acts" id="pa"></div><p class="pd-note">Brand new, sealed. Prices follow dealer availability — we confirm stock and the latest price before you pay.</p>'+
   '<div class="trust"><div class="tile">Brand new, sealed</div><div class="tile">Legit since 2014</div><div class="tile">'+esc(payMethods().join(' · '))+'</div></div></div></div></section>'+
@@ -365,11 +375,11 @@ function pageProduct(){var slug=decodeURIComponent((location.pathname.split('/pr
  function draw(){var v=m.variants[sel];document.querySelectorAll('.vsel button').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.i===sel))});
   var pp=document.getElementById('pp'),pa=document.getElementById('pa');
   if(!v||!v.price||v.off){pp.innerHTML='<div class="cash"><span>PRICE</span><b style="font-size:20px">Message us</b></div>';pa.innerHTML='<a class="btn big" href="'+esc(msgr('Hi Estilo Pinas! Is the '+m.model+' available?'))+'" target="_blank" rel="noopener">Ask for availability</a>';return}
-  var st={m:m.id,v:v.label};pp.innerHTML='<div class="cash"><span>CASH PRICE</span><b><i>₱</i><span class="tw" data-v="'+(window.__lastP||0)+'"></span></b></div><div class="card"><span>Credit card (+'+f+'% terminal fee)</span><b>'+php(v.price*(1+f/100))+'</b></div><div class="card"><span>Card, fee paid in cash</span><b>swipe '+php(v.price)+' + '+php(v.price*f/100)+' cash</b></div>';
-  pa.innerHTML='<button class="btn big" type="button" data-add>Add to bag</button><a class="btn ghost big" href="/order?'+esc(toQS({m:m.id,v:v.label,pay:'cash'}))+'">Order now</a><a class="btn ghost big" href="/payment-guide?'+esc(toQS({m:m.id,v:v.label,pay:'split',fee:'cash'}))+'#calc-sec">Payment calculator</a><a class="btn ghost big" href="'+esc(msgr('Hi Estilo Pinas! Is the '+m.model+' '+v.label+' available? Cash price '+php(v.price)+'.'))+'" target="_blank" rel="noopener">Ask for stock</a>'}
+  var pr=cprice(v,col),nm=m.model+' '+v.label+(col?' ('+col+')':'');pp.innerHTML='<div class="cash"><span>CASH PRICE</span><b><i>₱</i><span class="tw" data-v="'+(window.__lastP||0)+'"></span></b></div><div class="card"><span>Credit card (+'+f+'% terminal fee)</span><b>'+php(pr*(1+f/100))+'</b></div><div class="card"><span>Card, fee paid in cash</span><b>swipe '+php(pr)+' + '+php(pr*f/100)+' cash</b></div>';
+  pa.innerHTML='<button class="btn big" type="button" data-add>Add to bag</button><a class="btn ghost big" href="/order?'+esc(toQS({m:m.id,v:v.label,c:col,pay:'cash'}))+'">Order now</a><a class="btn ghost big" href="/payment-guide?'+esc(toQS({m:m.id,v:v.label,c:col,pay:'split',fee:'cash'}))+'#calc-sec">Payment calculator</a><a class="btn ghost big" href="'+esc(msgr('Hi Estilo Pinas! Is the '+nm+' available? Cash price '+php(pr)+'.'))+'" target="_blank" rel="noopener">Ask for stock</a>'}
  document.querySelector('.vsel').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;sel=+b.dataset.i;draw()});
- document.getElementById('pa').addEventListener('click',function(e){if(e.target.closest('[data-add]'))bagAdd(m,m.variants[sel],document.querySelector('.pd-ph'))});
- var _d=draw;draw=function(){_d();var v=m.variants[sel],tw=document.querySelector('#pp .tw');if(tw&&v&&v.price){window.EPM?EPM.tween(tw,v.price):tw.textContent=v.price.toLocaleString('en-PH');window.__lastP=v.price}};draw()}
+ document.getElementById('pa').addEventListener('click',function(e){if(e.target.closest('[data-add]'))bagAdd(m,m.variants[sel],document.querySelector('.pd-ph'),col)});
+ var _d=draw;draw=function(){_d();var v=m.variants[sel],tw=document.querySelector('#pp .tw'),pr=v?cprice(v,col):0;if(tw&&pr){window.EPM?EPM.tween(tw,pr):tw.textContent=pr.toLocaleString('en-PH');window.__lastP=pr}};csWire(document.querySelector('.pd-info'),function(c){col=c;draw()});draw()}
 
 /* ---------- PAGE: how to order ---------- */
 function pageHow(){shell('<section class="hero"><div class="wrap"><p class="eyebrow"><span class="dot"></span>How to avail</p><h1 class="disp">How to order</h1><p class="lead">Six simple steps from choosing your gadget to getting it in your hands.</p></div></section>'+
