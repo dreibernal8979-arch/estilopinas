@@ -27,7 +27,7 @@ function toast(t){var d=document.createElement('div');d.className='toast';d.text
 function today(){return new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}
 /* flat list of every priced option from the price list */
 function items(){var out=[];(DATA.priceList.categories||[]).forEach(function(c){(c.items||[]).forEach(function(it){(it.variants||[]).forEach(function(v,i){
- out.push({key:it.id+'~'+i,id:it.id,vi:i,cat:c.name,model:it.model,label:v.label||'',price:num(v.price),off:v.status==='unavailable',name:it.model+(v.label?' '+v.label:'')})})})});return out}
+ out.push({key:it.id+'~'+i,id:it.id,vi:i,cat:c.name,model:it.model,label:v.label||'',price:num(v.price),off:v.status==='unavailable',name:it.model+(v.label?' '+v.label:''),photo:it.photo||''})})})});return out}
 function findItem(id,label){var L=items();return L.find(function(x){return x.id===id&&(label==null||x.label===label)})||L.find(function(x){return x.id===id})||null}
 
 /* ---------- payment engine (one place for all math) ---------- */
@@ -150,12 +150,13 @@ function pagePay(){var p=P(),f=fee(),st=stFromQS();
 function copy(t,msg){try{navigator.clipboard.writeText(t).then(function(){toast(msg)},function(){prompt('Copy this link:',t)})}catch(e){prompt('Copy this link:',t)}}
 
 /* ---------- PAGE: quotation (/q) ---------- */
-function pageQuote(){var o=qs();
- function show(it,q,meta){shell('<section class="wrap qwrap"><p class="eyebrow"><span class="dot"></span>Your quotation</p>'+receipt(it,q,{anim:true,customer:meta.customer,code:meta.code,note:meta.note,title:meta.title})+
+function pageQuote(){var o=qs();var fp=location.pathname.match(/^\/for\/([^\/?#]+)/);if(fp){var sg=decodeURIComponent(fp[1]).split('-');o.c=sg.pop();}
+ function hi(n){n=String(n||'').trim().split(/\s+/)[0];return n?'<h1 class="disp qhi">Hi '+esc(n)+'!</h1><p class="lead">Here’s your personal quotation from Estilo Pinas, with the full price and payment breakdown.</p>':''}
+ function show(it,q,meta){shell('<section class="wrap qwrap"><p class="eyebrow"><span class="dot"></span>Your quotation</p>'+hi(meta.customer)+(it&&it.photo?'<div class="qph"><span class="fl">'+pic(it,true)+'</span><i class="gs"></i></div>':'')+receipt(it,q,{anim:true,customer:meta.customer,code:meta.code,note:meta.note,title:meta.title})+
   '<div class="calc-acts"><a class="btn" href="/order?'+esc(meta.orderQS)+'">Order this</a><a class="btn ghost" href="'+esc(msgr('Hi Estilo Pinas! About my quotation'+(meta.code?' '+meta.code:'')+': '+(it?it.name:'')+' — total '+php(q.total)+'.'))+'" target="_blank" rel="noopener">Message us</a></div>'+
   '<p class="mini center">Want to try another payment mix? <a href="/payment-guide?'+esc(meta.orderQS)+'#calc-sec">Open the calculator</a></p></section>')}
  if(o.c){rpc('get_quote',{p_code:o.c}).then(function(r){if(!r||!r.price)throw 0;var it=r.m?findItem(r.m,r.v):null;var q=quote(r.price,r.pay||'cash',r.card,r.fee);
-   show(it&&it.price===r.price?it:{cat:it?it.cat:'Item',model:r.title||(it?it.model:'Quoted item'),label:r.title?'':(r.v||''),name:r.title||''},q,{customer:r.name,code:o.c,note:r.note,orderQS:toQS({q:o.c})})})
+   show(it&&it.price===r.price?it:{cat:it?it.cat:'Item',model:r.title||(it?it.model:'Quoted item'),label:r.title?'':(r.v||''),name:r.title||'',photo:it?it.photo:'',id:it?it.id:''},q,{customer:r.name,code:o.c,note:r.note,orderQS:toQS({q:o.c})})})
   .catch(function(){shell('<section class="wrap qwrap"><h1 class="disp">Quote not found</h1><p class="lead">This link may have expired. Message us and we will send a fresh one.</p><a class="btn" href="'+esc(msgr('Hi Estilo Pinas! My quotation link is not opening.'))+'">Message us</a></section>')});return}
  var st=stFromQS(),it=byKey(st.key),price=st.key==='custom'?num(st.custom):it?it.price:0;
  if(!price){location.replace('/payment-guide');return}
@@ -303,6 +304,13 @@ function openDetail(m,fromEl){var sel=m.variants.findIndex(function(v){return !v
   if(e.target.closest('[data-add]')){var v=m.variants[sel];bagAdd(m,v,ov.querySelector('.ov-ph'));}});
  draw();ov.querySelector('.ov-x').focus()}
 
+/* ---------- real Facebook reviews (owner-editable in admin) ---------- */
+function reviewsHTML(){var s=S(),L=(s.reviews||[]).filter(function(r){return r&&r.on!==false&&r.t});
+ var head='<div class="sh2"><div><p class="eyebrow">Customer reviews</p><h2>'+(s.reviewCount?esc(s.reviewCount)+' reviews. ':'Real buyers. ')+(s.reviewPct?esc(s.reviewPct)+'% recommend.':'')+'</h2><p>Straight from our Facebook page.</p></div><a href="'+esc(s.fb)+'" target="_blank" rel="noopener">See all on Facebook →</a></div>';
+ if(!L.length)return '<section class="wrap sec2" data-rv>'+head+'<div data-st class="tile cream rev2"><div><h3>Real buyers, real posts</h3><p>See our customers’ reviews and legit-check posts on our Facebook page.</p></div><a class="btn" href="'+esc(s.fb)+'" target="_blank" rel="noopener">See reviews on Facebook</a></div></section>';
+ function card(r){return '<figure class="rvc'+(r.photo?' hasph':'')+'" data-st>'+(r.photo?'<img src="'+esc(r.photo)+'" alt="Photo posted by '+esc(r.n)+'" loading="lazy" decoding="async">':'')+'<figcaption><div class="rvh"><span class="av" aria-hidden="true">'+esc(String(r.n||'?').trim().charAt(0).toUpperCase())+'</span><div><b>'+esc(r.n)+'</b> <span class="mu">recommends</span> <b>Estilo Pinas</b><small>'+esc(r.d||'')+(r.d?' · ':'')+'Facebook review</small></div></div><blockquote>'+esc(r.t)+'</blockquote></figcaption></figure>'}
+ return '<section class="wrap sec2" data-rv>'+head+'<div class="rvw" id="rvw">'+L.map(card).join('')+'</div></section>'}
+
 /* ---------- PAGE: home ---------- */
 function pageHome(){var M=models();var hero=M.find(function(m){return m.photo&&m.avail&&m.spec})||M[0];var f=fee();
  var cats=[];(DATA.priceList.categories||[]).forEach(function(c){var n=(c.items||[]).length;if(n)cats.push({id:c.id||c.name,name:c.name,n:n,icon:iconKey(c)})});
@@ -321,11 +329,11 @@ function pageHome(){var M=models();var hero=M.find(function(m){return m.photo&&m
   '<div data-st class="tile ink it"><span class="n" style="color:#cfd6de">PAYMENT OPTIONS</span><h3>'+esc(payMethods().join(' · '))+'</h3><p>Pay all in cash, all on card, or split between the two. Some banks also offer credit-to-cash — ask your bank directly.</p><p style="margin-top:14px"><a class="btn light" href="/payment-guide">Open payment calculator <span class="ar">→</span></a></p></div></div></section>'+
  '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">How to avail</p><h2>Six simple steps</h2></div><a href="'+esc(S().fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas →</a></div>'+stepsHTML().replace(/<li>/g,'<li data-st>')+'</section>'+
  '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">Delivery &amp; pickup</p><h2>Get it your way</h2></div></div><div class="g3">'+deliveryList().map(function(x,i){return '<div data-st class="tile it'+(i===0?' blue':'')+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('')+'</div></section>'+
- '<section class="wrap sec2" data-rv><div data-st class="tile cream rev2"><div><p class="eyebrow">Customer reviews</p><h3>Real buyers, real posts</h3><p>See our customers’ SOLD and legit-check posts on our Facebook page.</p></div><a class="btn" href="'+esc(S().fb)+'" target="_blank" rel="noopener">See reviews on Facebook</a></div></section>'+
+ reviewsHTML()+
  '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">FAQ</p><h2>Good to know</h2></div></div><div data-st>'+faqHTML()+'</div></section>'+
  '<section class="wrap sec2" data-rv><div data-st class="tile ink rev2"><div><p class="eyebrow" style="color:#cfd6de">Shopping assistant</p><h3>Ask us anything</h3><p>Tell us your budget and how you’ll use it — we’ll help you pick. Rodz can join anytime.</p></div><a class="btn light" href="/ask">Ask our assistant <span class="ar">→</span></a></div></section>'+
  '<section class="wrap sec2" data-rv style="padding-bottom:48px"><div class="sh2"><div><p class="eyebrow">Contact &amp; store</p><h2>Visit or message us</h2></div></div><div data-st>'+contactHTML()+'</div></section>');
- if(window.EPM){var pops=[],seen={};seen[hero&&hero.catId]=1;M.forEach(function(m){if(m.photo&&m.avail&&!seen[m.catId]){seen[m.catId]=1;pops.push(m)}});M.forEach(function(m){if(pops.length<3&&m.photo&&m.avail&&m!==hero&&pops.indexOf(m)<0&&m.catId===(hero&&hero.catId))pops.push(m)});
+ wireDrag(document.getElementById('rvw'));if(window.EPM){var pops=[],seen={};seen[hero&&hero.catId]=1;M.forEach(function(m){if(m.photo&&m.avail&&!seen[m.catId]){seen[m.catId]=1;pops.push(m)}});M.forEach(function(m){if(pops.length<3&&m.photo&&m.avail&&m!==hero&&pops.indexOf(m)<0&&m.catId===(hero&&hero.catId))pops.push(m)});
   EPM.hero(document.getElementById('h3'),hero,pops);
   var fl=M.filter(function(m){return m.photo});if(fl.length>2&&EPM.rail)EPM.rail(document.getElementById('fr'),fl,{render:function(m){return pic(m,true)},label:function(m){return esc(m.model)+'<b>'+(m.avail?pnum(m.from):'Ask us')+'</b>'},open:function(m,n){openDetail(m,n.querySelector('img')||n)}});else{var fs=document.getElementById('floatsec');if(fs)fs.remove()}
   EPM.showroom(document.getElementById('sr'),show.length?show:M,{render:function(m){return '<div class="ph" style="--d:'+FD(m)+'s"><span class="fl">'+pic(m,true)+'</span><i class="gs"></i></div><p class="nm">'+esc(m.model)+'</p>'},

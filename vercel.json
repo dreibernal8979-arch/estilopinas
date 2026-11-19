@@ -27,6 +27,10 @@
   {
    "source": "/product/:slug",
    "destination": "/product.html"
+  },
+  {
+   "source": "/for/:slug",
+   "destination": "/q.html"
   }
  ]
 }

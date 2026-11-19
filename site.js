@@ -176,6 +176,8 @@ function edHTML(){var s=S();
   '<div class="f"><label>More photos</label><div class="tools gal-ed">'+(p.photos||[]).map(function(u,j){return '<span class="gthumb"><img alt="" src="'+(PROC[u]||u)+'"><button data-gdel="'+p.id+'" data-j="'+j+'" aria-label="Remove photo">×</button></span>'}).join('')+'<label class="up">+ Add photo<input type="file" accept="image/*" data-gup="'+p.id+'"></label></div></div>'+
   '<div class="tools">'+(i>0?'<button data-mv="-1" data-id="'+p.id+'">↑ Up</button>':'')+(i<state.products.length-1?'<button data-mv="1" data-id="'+p.id+'">↓ Down</button>':'')+'<button class="del" data-del="'+p.id+'">Delete</button></div></div>'}).join('');
  var ways=(s.ways||[]).map(function(w,i){return '<div class="erow">'+f('Title','data-w="t" data-i="'+i+'"',w.t)+f('Details','data-w="d" data-i="'+i+'"',w.d,'',1)+'<div class="tools"><button class="del" data-wdel="'+i+'">Delete</button></div></div>'}).join('');
+ var rvs=(s.reviews||[]).map(function(r,i){return '<div class="erow">'+'<div class="two">'+f('Customer name','data-rw="n" data-i="'+i+'"',r.n||'','e.g. Sherwin A.')+f('Date','data-rw="d" data-i="'+i+'"',r.d||'','e.g. 30 Sept')+'</div>'+f('Review (copy it exactly from Facebook)','data-rw="t" data-i="'+i+'"',r.t||'','',1)+
+  '<div class="tools">'+(r.photo?'<span class="gthumb"><img alt="" src="'+esc(r.photo)+'"></span><button data-rwnoph="'+i+'">Remove photo</button>':'')+'<label class="up">'+(r.photo?'Change photo':'+ Add customer photo')+'<input type="file" accept="image/*" data-rwup="'+i+'"></label><label class="chk"><input type="checkbox" data-rwon="'+i+'"'+(r.on!==false?' checked':'')+'> Show on website</label>'+(i>0?'<button data-rwmv="-1" data-i="'+i+'">↑ Up</button>':'')+'<button class="del" data-rwdel="'+i+'">Delete</button></div></div>'}).join('');
  var prom=(s.promise||[]).map(function(w,i){return '<div class="two">'+f('Promise '+(i+1),'data-pm="t" data-i="'+i+'"',w.t)+f('Line','data-pm="d" data-i="'+i+'"',w.d)+'</div>'}).join('');
  var stats=(s.stats||[]).map(function(x,i){return '<div class="two">'+f('Number','data-st="n" data-i="'+i+'"',x.n)+f('Label','data-st="l" data-i="'+i+'"',x.l)+'</div>'}).join('');
  return '<div class="ed-h"><b>Edit site</b><button class="btn ghost sm" id="ed-close">Close</button></div><div class="ed-b">'+
@@ -185,6 +187,7 @@ function edHTML(){var s=S();
   
   
   
+  '<details><summary>Customer reviews</summary><div class="g"><p class="small">Real reviews from your Facebook page, shown on the homepage.</p><div class="two">'+f('% recommend','data-s="reviewPct" inputmode="numeric"',s.reviewPct||'','100')+f('Number of reviews','data-s="reviewCount" inputmode="numeric"',s.reviewCount||'','760')+'</div>'+rvs+'<button class="addrow" id="ed-rwadd">+ Add a review</button></div></details>'+
   '<details><summary>Delivery & pickup</summary><div class="g"><p class="small">Shown on the homepage, How to order and Contact pages.</p>'+ways+'<button class="addrow" id="ed-wadd">+ Add a delivery option</button></div></details>'+
   '<details><summary>Contact & store</summary><div class="g">'+f('Facebook page username (for Messenger)','data-s="messenger"',s.messenger,'e.g. estilopinas')+f('Facebook page link','data-s="fb"',s.fb,'https://facebook.com/...')+f('Call / Viber','data-s="phone"',s.phone)+f('Address','data-s="address"',s.address,'',1)+f('Hours','data-s="hours"',s.hours)+f('Name to search on maps','data-s="mapsQuery"',s.mapsQuery)+
    '<div class="tools"><label class="up">'+(s.storePhoto?'Change store photo':'Add store photo')+'<input type="file" accept="image/*" data-upk="storePhoto"></label>'+(s.storePhoto?'<button data-clr="storePhoto">Remove</button>':'')+'</div></div></details>'+
@@ -265,8 +268,8 @@ function opsHTML(){if(!canWrite)return '';var h='';
   '<div class="two"><div class="f"><label>Payment</label><select data-q="pay">'+[['cash','Cash'],['card','Credit card'],['split','Split']].map(function(m){return '<option value="'+m[0]+'"'+(Q.pay===m[0]?' selected':'')+'>'+m[1]+'</option>'}).join('')+'</select></div>'+
   '<div class="f"><label>Card fee paid</label><select data-q="fee"><option value="cash"'+(Q.fee==='cash'?' selected':'')+'>In cash</option><option value="card"'+(Q.fee==='card'?' selected':'')+'>Added to card</option></select></div></div>'+
   (Q.pay==='split'?f('Amount on card (₱)','data-q="card" inputmode="numeric"',Q.card,''):'')+
-  '<div class="two">'+f('Customer name (optional)','data-q="name"',Q.name,'')+f('Valid for (days)','data-q="days" inputmode="numeric"',Q.days,'7')+'</div>'+
-  '<button class="btn sm" id="q-make">Create link</button>'+(OPS.qlink?'<div class="erow"><b class="small">Link ready:</b><input readonly value="'+esc(OPS.qlink)+'" onclick="this.select()"><div class="tools"><button id="q-copy">Copy link</button><a class="up" target="_blank" rel="noopener" href="'+esc(OPS.qlink)+'">Open</a></div></div>':'')+'</div></details>';
+  '<div class="two">'+f('Customer name (goes in the link)','data-q="name"',Q.name,'')+f('Valid for (days)','data-q="days" inputmode="numeric"',Q.days,'7')+'</div>'+
+  '<button class="btn sm" id="q-make">Create link</button>'+(OPS.qlink?'<div class="erow"><b class="small">Link ready:</b><input readonly value="'+esc(OPS.qlink)+'" onclick="this.select()"><div class="tools"><button id="q-copy">Copy link</button><button id="q-copym">Copy message</button><a class="up" target="_blank" rel="noopener" href="'+esc(OPS.qlink)+'">Open</a></div></div>':'')+'</div></details>';
  var p=payS();
  h+='<details><summary>Payment settings & assistant answers</summary><div class="g">'+f('Card terminal fee (%)','data-pay="cardFee" inputmode="decimal"',p.cardFee,'5')+
   f('Card note (Payment guide)','data-pay="feeNote"',p.feeNote||'','Card payments have a 5% terminal fee on the amount you swipe…',1)+
@@ -293,12 +296,13 @@ function opsClick(t){var d=t.dataset;
   sb.from('alerts').update({status:'resolved',resolution:res,resolved_at:new Date().toISOString()}).eq('id',d.ardone).then(function(r){toast(r.error?'Could not update':'Resolved');opsLoad()});return true}
  if(t.id==='faq-add'){payS().faq.push({q:'',k:'',a:'',on:false});live();paintEd();return true}
  if(d.faqdel){if(!d.confirm){d.confirm='1';t.textContent='Tap again to delete';return true}payS().faq.splice(+d.faqdel,1);live();paintEd();return true}
+ if(t.id==='q-copym'){var fn=String(OPS.qname||'').trim().split(/\s+/)[0];var msg=(fn?'Hi '+fn+'! ':'Hi! ')+'Here is your Estilo Pinas quotation, with the price and payment breakdown: '+OPS.qlink;try{navigator.clipboard.writeText(msg).then(function(){toast('Message copied')})}catch(e){}return true}
  if(t.id==='q-copy'){try{navigator.clipboard.writeText(OPS.qlink).then(function(){toast('Link copied')})}catch(e){}return true}
  if(t.id==='q-make'){var Q=OPS.qst,parts=(Q.key||'').split('~'),it=Q.key?plFlat().find(function(x){return x.id===parts[0]&&x.label===parts.slice(1).join('~')}):null;
   var price=String(Q.price||'').replace(/[^0-9]/g,'')||(it?String(it.price):'');if(!price){toast('Enter a price');return true}
   t.disabled=true;t.textContent='Creating…';
   sb.rpc('create_quote',{p:{price:price,m:it?it.id:'',v:it?it.label:'',title:it?it.name:(Q.title||''),pay:Q.pay,card:Q.card,fee:Q.fee,name:Q.name,days:Q.days||'7'}}).then(function(r){
-   if(r.error){toast('Could not create: '+r.error.message);t.disabled=false;t.textContent='Create link';return}OPS.qlink=location.origin+'/q?c='+r.data;paintEd()});return true}
+   if(r.error){toast('Could not create: '+r.error.message);t.disabled=false;t.textContent='Create link';return}var sl=String(Q.name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30);OPS.qlink=location.origin+(sl?'/for/'+sl+'-'+r.data:'/q?c='+r.data);OPS.qname=Q.name||'';paintEd()});return true}
  return false}
 function openEditor(){editing=true;stopRail();if(!ed){ed=document.createElement('aside');ed.className='ed';ed.setAttribute('aria-label','Edit site');document.body.appendChild(ed);wireEd()}paintEd();render()}
 function paintEd(){var open=[].map.call(ed.querySelectorAll('details'),function(d){return d.open}),sc=(ed.querySelector('.ed-b')||{}).scrollTop||0;ed.innerHTML=edHTML();
@@ -311,12 +315,15 @@ function wireEd(){
   if(d.p==='specsText'){var p0=find(d.id);p0.specs=t.value.split('\n').map(function(l){var i=l.indexOf(':');return i>0?{k:l.slice(0,i).trim(),v:l.slice(i+1).trim()}:null}).filter(Boolean)}
   else if(d.p){var p=find(d.id);p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false}
   else if(d.s){s[d.s]=d.s==='ticker'?t.value.split('\n').map(function(x){return x.trim()}).filter(Boolean):t.value}
+  else if(d.rw){s.reviews[+d.i][d.rw]=t.value}
   else if(d.w){s.ways[+d.i][d.w]=t.value}else if(d.pm){s.promise[+d.i][d.pm]=t.value}else if(d.st){s.stats[+d.i][d.st]=t.value}else return;
   live()});
  ed.addEventListener('change',function(e){var t=e.target,d=t.dataset;
   if(opsChange(t))return;
   if(d.plup&&t.files&&t.files[0]){var pa=d.plup.split(',');toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var it=state.priceList.categories[+pa[0]].items[+pa[1]];it.photo=url;state.priceList.updated=today();live();paintEd()})});return}if(d.q&&t.tagName==='SELECT'){OPS.qst[d.q]=t.value;OPS.qlink='';paintEd();return}
   if(d.p==='status'||d.p==='featured'||d.p==='spotlight'){var p=find(d.id);if(d.p==='spotlight'&&t.checked)state.products.forEach(function(x){x.spotlight=false});p[d.p]=t.type==='checkbox'?t.checked:t.value;p.sample=false;live();if(d.p==='spotlight')paintEd()}
+  if(d.rwon!=null&&d.rwon!==''){S().reviews[+d.rwon].on=t.checked;live();return}
+  if(d.rwup&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){S().reviews[+d.rwup].photo=url;live();paintEd()})});return}
   if(d.gup&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],1100,function(du){uploadImg(du,function(url){var p=find(d.gup);(p.photos=p.photos||[]).push(url);live();paintEd()})})}
   if((d.up||d.upk)&&t.files&&t.files[0]){toast('Adding photo…');resizeImg(t.files[0],d.upk==='storePhoto'?1600:1100,function(du){uploadImg(du,function(url){if(d.up){var p=find(d.up);p.photo=url;p.sample=false}else S()[d.upk]=url;live();paintEd()})},d.upk==='storePhoto')}});
  ed.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;var d=t.dataset,s=S();
@@ -326,6 +333,10 @@ function wireEd(){
   if(t.id==='ed-cancel'){state=JSON.parse(saved);dirty=false;paintEd();render();return}
   if(t.id==='ed-save')return save(t);
   if(t.id==='ed-add'){state.products.unshift({id:'p'+Date.now().toString(36),name:'New unit',spec:'Brand new, sealed',cat:'iPhone',price:'',status:'available',photo:'',featured:true});live();paintEd();return}
+  if(t.id==='ed-rwadd'){(s.reviews=s.reviews||[]).unshift({n:'',d:'',t:'',photo:'',on:true});live();paintEd();return}
+  if(d.rwdel){if(d.confirm){s.reviews.splice(+d.rwdel,1);live();paintEd();return}d.confirm='1';t.textContent='Tap again to delete';return}
+  if(d.rwnoph){s.reviews[+d.rwnoph].photo='';live();paintEd();return}
+  if(d.rwmv){var ri=+d.i,rr=s.reviews.splice(ri,1)[0];s.reviews.splice(ri-1,0,rr);live();paintEd();return}
   if(t.id==='ed-wadd'){s.ways.push({t:'New way to buy',d:''});live();paintEd();return}
   if(d.wdel){s.ways.splice(+d.wdel,1);live();paintEd();return}
   if(d.del){if(d.confirm){state.products=state.products.filter(function(x){return x.id!==d.del});live();paintEd();return}d.confirm='1';t.textContent='Tap again to delete';return}
