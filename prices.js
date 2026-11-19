@@ -47,7 +47,7 @@ function render(){
  el.innerHTML=h;
 }
 render();
-if(CFG.url){fetch(CFG.url+'/rest/v1/site?id=eq.main&select=data',{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}).then(function(r){return r.json()}).then(function(rows){
+if(CFG.url){var gs=function(u){return fetch(u+'/rest/v1/site?id=eq.main&select=data',{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}).then(function(r){if(!r.ok)throw 0;return r.json()})};gs(CFG.url).catch(function(){return CFG.direct?gs(CFG.direct):[]}).then(function(rows){
  var d=rows&&rows[0]&&rows[0].data;if(!d)return;if(d.settings)Object.keys(set).forEach(function(k){if(d.settings[k])set[k]=d.settings[k]});
  if(d.priceList&&d.priceList.categories)data=d.priceList;render();
  if(location.hash){var t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}}).catch(function(){})}

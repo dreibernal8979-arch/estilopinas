@@ -373,7 +373,11 @@ function save(btn){
  sb.from('site').upsert({id:'main',data:state,updated_at:new Date().toISOString()}).then(function(r){btn.disabled=false;btn.textContent='Save';
   if(r.error){toast('Could not save: '+r.error.message);return}
   saved=JSON.stringify(state);dirty=false;var st=document.getElementById('ed-state');if(st)st.textContent='Saved. Customers see it now.';toast('Saved. The live site is updated.')})}
-function loadRemote(){if(!CFG.url)return Promise.resolve();
+/* use our own domain's /sb proxy; fall back to the direct database address if that ever fails */
+var pinged=null;function ping(){if(pinged)return pinged;if(!CFG.direct||CFG.direct===CFG.url)return (pinged=Promise.resolve());
+ return (pinged=fetch(CFG.url+'/rest/v1/site?id=eq.main&select=id',{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}).then(function(r){if(!r.ok)throw 0}).catch(function(){CFG.url=CFG.direct}))}
+function loadRemote(){if(!CFG.url)return Promise.resolve();return ping().then(loadRemote2)}
+function loadRemote2(){
  return fetch(CFG.url+'/rest/v1/site?id=eq.main&select=data',{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}).then(function(r){return r.json()}).then(function(rows){
   if(rows&&rows[0]&&rows[0].data&&!dirty){state=withPL(rows[0].data);saved=JSON.stringify(state);render();if(ed)paintEd()}}).catch(function(){})}
 /* owner login (admin page only) */
@@ -392,6 +396,6 @@ function addOut(){var o=document.createElement('button');o.className='tlink lgou
 render();loadRemote().then(function(){var h=(location.hash||'').slice(1);if(h&&find(h))openView(h)});
 if(window.EP_MODE==='admin'){
  if(!(window.supabase&&window.supabase.createClient)){toast('Login could not load. Check your internet and reload.')}
- else{sb=window.supabase.createClient(CFG.url,CFG.key);sb.auth.getSession().then(function(r){if(r.data&&r.data.session)afterLogin();else loginBox()})}
+ else{ping().then(function(){sb=window.supabase.createClient(CFG.url,CFG.key);sb.auth.getSession().then(function(r){if(r.data&&r.data.session)afterLogin();else loginBox()})})}
 }
 })();

@@ -16,16 +16,17 @@ function hero(el,m,pops){if(!el)return;pops=(pops||[]).filter(function(x){return
  var specs=m&&m.spec?m.spec.split('·').map(function(x){return x.trim()}).filter(Boolean).slice(0,3):[];
  el.innerHTML='<div class="h3-stage" aria-hidden="true"><div class="h3-glow"></div><div class="h3-ring r1"></div><div class="h3-ring r2"></div>'+
   '<div class="h3-orbit">'+[0,1,2,3,4,5].map(function(i){return '<i style="--k:'+i+'"></i>'}).join('')+'</div>'+
+  (m&&m.photo?'<div class="h3-float real"><div class="h3-real" id="h3p"><img src="'+esc(m.photo)+'" alt="'+esc(m.model||'')+'" fetchpriority="high" decoding="async"></div><div class="h3-shadow"></div></div>':
   '<div class="h3-float"><div class="h3-phone" id="h3p">'+
    '<div class="f front"><div class="scr"><div class="isl"></div><div class="wall"></div><img src="/wordmark-white.svg" alt=""><div class="sweep"></div></div></div>'+
    '<div class="f back"><div class="cam"><b></b><b></b><b></b><s></s></div><img src="/logo.svg" alt="" class="bl"></div>'+
-   '<div class="f side l"></div><div class="f side r"></div><div class="f side t"></div><div class="f side b"></div></div><div class="h3-shadow"></div></div>'+
+   '<div class="f side l"></div><div class="f side r"></div><div class="f side t"></div><div class="f side b"></div></div><div class="h3-shadow"></div></div>')+
   pops.map(function(x,i){return '<span class="h3-pop p'+i+'"><img src="'+esc(x.photo)+'" alt="" decoding="async" onerror="this.parentNode.remove()"></span>'}).join('')+
   specs.map(function(s,i){return '<span class="h3-chip c'+i+'">'+esc(s)+'</span>'}).join('')+'</div>';
- var p=el.querySelector('#h3p'),rx=0,ry=0,tx=0,ty=0,raf=0,t0=performance.now(),vis=true;
- if(RM){p.style.transform='rotateY(-22deg) rotateX(6deg)';return}
+ var p=el.querySelector('#h3p'),real=p.classList.contains('h3-real'),rx=0,ry=0,tx=0,ty=0,raf=0,t0=performance.now(),vis=true;
+ if(RM){p.style.transform=real?'none':'rotateY(-22deg) rotateX(6deg)';return}
  function loop(t){var e=(t-t0)/1000;rx+=(tx-rx)*.06;ry+=(ty-ry)*.06;
-  p.style.transform='rotateX('+(8+rx).toFixed(2)+'deg) rotateY('+((e*24)%360+ry).toFixed(2)+'deg)';el.style.setProperty('--mx',(ry/30).toFixed(3));el.style.setProperty('--my',(rx/16).toFixed(3));raf=vis?requestAnimationFrame(loop):0}
+  p.style.transform=real?'translateY('+(Math.sin(e*1.1)*-12).toFixed(1)+'px) rotateX('+(rx*.6).toFixed(2)+'deg) rotateY('+(Math.sin(e*.5)*9+ry*.6).toFixed(2)+'deg) rotateZ('+(Math.sin(e*.7)*1.5).toFixed(2)+'deg)':'rotateX('+(8+rx).toFixed(2)+'deg) rotateY('+((e*24)%360+ry).toFixed(2)+'deg)';el.style.setProperty('--mx',(ry/30).toFixed(3));el.style.setProperty('--my',(rx/16).toFixed(3));raf=vis?requestAnimationFrame(loop):0}
  el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect();ty=((e.clientX-r.left)/r.width-.5)*30;tx=-((e.clientY-r.top)/r.height-.5)*16});
  el.addEventListener('pointerleave',function(){tx=ty=0});
  if('IntersectionObserver' in window)new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop)}).observe(el);

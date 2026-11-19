@@ -25,6 +25,10 @@
  ],
  "rewrites": [
   {
+   "source": "/sb/:path*",
+   "destination": "https://kuuyjxydzfnsqceibjvt.supabase.co/:path*"
+  },
+  {
    "source": "/product/:slug",
    "destination": "/product.html"
   },

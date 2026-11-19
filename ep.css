@@ -170,3 +170,4 @@ body{background:var(--cream);color:var(--ink);font:400 15px/1.6 var(--sans);lett
 .rvh{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.35}.rvh .mu{color:var(--mute)}.rvh small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
 .rvh .av{flex:none;width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 15px var(--sans)}
 .rvc blockquote{margin:12px 0 0;font-size:14px;line-height:1.5;color:#1c1d1f}
+.pc2 .ph{background:transparent!important}
