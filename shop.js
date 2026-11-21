@@ -325,7 +325,7 @@ function reviewsHTML(){var s=S(),L=(s.reviews||[]).filter(function(r){return r&&
 /* ---------- PAGE: home ---------- */
 /* ---------- receipt-style detail (store home) ---------- */
 function barcode(t){var h=0,out='',x=0;for(var i=0;i<String(t).length;i++)h=(h*33+String(t).charCodeAt(i))>>>0;for(var k=0;k<46;k++){h=(h*1103515245+12345)>>>0;var w=1+(h>>>28)%3;if(k%2===0)out+='<rect x="'+x+'" y="0" width="'+w+'" height="34"/>';x+=w+((h>>>24)%2)+1}return '<svg class="bc" viewBox="0 0 '+x+' 34" preserveAspectRatio="none" aria-hidden="true">'+out+'</svg>'}
-function openReceipt(m,fromEl){var M=models(),no=M.findIndex(function(x){return x.id===m.id})+1,f=fee(),sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var col=m.colorList[0]||'';
+function openReceipt(m,fromEl,opt){opt=opt||{};var M=models(),no=M.findIndex(function(x){return x.id===m.id})+1,f=fee(),sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;if(opt.v!=null&&m.variants[opt.v]&&m.variants[opt.v].price&&!m.variants[opt.v].off)sel=opt.v;var col=m.colorList[0]||'';
  var old=document.getElementById('rcp');if(old)old.remove();
  var d=document.createElement('div');d.id='rcp';d.className='rcp';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label',m.model);
  d.innerHTML='<div class="rcp-bg" data-x></div><aside class="rcp-pn"><button class="rcp-x" type="button" data-x aria-label="Close">×</button>'+
@@ -344,7 +344,7 @@ function openReceipt(m,fromEl){var M=models(),no=M.findIndex(function(x){return 
   d.querySelector('#r-cash').textContent=pr?php(pr):'Ask us';d.querySelector('#r-card').textContent=pr?php(pr*(1+f/100)):'—';d.querySelector('#r-tot').textContent=pr?php(pr):'Ask us';
   d.querySelector('#r-ord').href='/order?'+toQS({m:m.id,v:v?v.label:'',c:col,pay:'cash'});
   d.querySelector('#r-ask').href=msgr('Hi Estilo Pinas! Is the '+m.model+' '+(v?v.label:'')+(col?' ('+col+')':'')+' available?'+(pr?' Cash price '+php(pr)+'.':''))}
- function close(){d.classList.remove('on');document.documentElement.classList.remove('noscroll');setTimeout(function(){d.remove()},320);if(fromEl&&fromEl.focus)try{fromEl.focus()}catch(e){}}
+ function close(){d.classList.remove('on');document.documentElement.classList.remove('noscroll');if(opt.onClose)opt.onClose();setTimeout(function(){d.remove()},320);if(fromEl&&fromEl.focus)try{fromEl.focus()}catch(e){}}
  d.addEventListener('click',function(e){if(e.target.closest('[data-x]')){close();return}
   var b=e.target.closest('.rcp-opts button');if(b&&!b.disabled){sel=+b.dataset.v;draw();return}
   var c=e.target.closest('.csel button');if(c){col=c.dataset.c;d.querySelectorAll('.csel button').forEach(function(x){x.setAttribute('aria-pressed',String(x===c))});draw();return}
@@ -352,36 +352,53 @@ function openReceipt(m,fromEl){var M=models(),no=M.findIndex(function(x){return 
  d.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
  draw();requestAnimationFrame(function(){d.classList.add('on');d.querySelector('.rcp-x').focus()})}
 
-/* ---------- PAGE: home = one-screen store (no long scrolling) ---------- */
-function pageHome(){var M=models(),f=fee();var A=M.filter(function(m){return m.photo});if(!A.length)A=M;
+/* ---------- PAGE: home = one-screen store (modelled on the owner's reference video) ---------- */
+function pageHome(){var M=models();var A=M.filter(function(m){return m.photo});if(!A.length)A=M;
  document.body.classList.add('store');
  var cats=[];(DATA.priceList.categories||[]).forEach(function(c){var n=M.filter(function(m){return m.catId===(c.id||c.name)}).length;if(n)cats.push({id:c.id||c.name,name:c.name,n:n})});
  var revs=(S().reviews||[]).filter(function(r){return r&&r.on!==false&&r.t});
+ function no(m){return String(M.findIndex(function(x){return x.id===m.id})+1).padStart(2,'0')}
  shell(
  '<section class="st" aria-label="Estilo Pinas store">'+
-  '<div class="st-field" id="fd" tabindex="0" aria-label="Gadgets floating in space. Scroll or drag to move through them, tap one for prices."></div>'+
-  '<div class="st-tl"><span>STORE 001 · MABALACAT</span><span>'+A.length+' GADGETS · BRAND NEW, SEALED</span></div>'+
-  '<h1 class="st-h">Your next gadget<br><span class="acc">starts here.</span></h1>'+
-  '<div class="st-edge" role="group" aria-label="Views"><button type="button" data-pn="index">Index</button><button type="button" data-pn="grid">Grid</button>'+(revs.length?'<button type="button" data-pn="rev">Reviews</button>':'')+'</div>'+
-  '<div class="st-bl"><span>SCROLL OR DRAG TO MOVE · TAP A GADGET</span><span>'+esc(payMethods().join(' · ').toUpperCase())+' · SAME DEALER PRICE</span></div>'+
-  '<nav class="st-br" aria-label="More"><a href="/payment-guide">Payment</a><a href="/how-to-order">How to order</a><a href="/track-order">Track</a><a href="/contact">Contact</a><a href="/ask">Ask us</a></nav>'+
-  /* index panel */
-  '<div class="st-pn" id="pn-index" hidden><div class="st-pn-in"><div class="st-pn-h"><b>INDEX</b><button type="button" data-pn="" aria-label="Close">×</button></div>'+
+  '<div class="st-field" id="fd" tabindex="0" aria-label="Gadgets. Scroll or swipe to move through them, tap one for prices."></div>'+
+  '<div class="st-tl"><span class="qr" id="qr" aria-hidden="true"></span><div><span>STORE 001 · MABALACAT, PAMPANGA</span><span>YOUR NEXT GADGET STARTS HERE.</span><span>'+A.length+' GADGETS · BRAND NEW, SEALED</span></div></div>'+
+  '<div class="st-tr"><button type="button" id="vw" aria-pressed="false">Grid</button>'+(revs.length?'<button type="button" data-pn="rev">Reviews ('+esc(S().reviewCount||revs.length)+')</button>':'')+'</div>'+
+  '<button type="button" class="st-menu" data-pn="index" aria-label="Index of all gadgets"><span></span><span></span><span></span></button>'+
+  '<div class="st-prog" aria-hidden="true"><i id="pk"></i></div>'+
+  '<div class="st-bl"><p class="st-no" id="fno"></p><h1 class="st-name" id="fname">&nbsp;</h1><p class="st-sub" id="fsub"></p>'+
+   '<nav class="st-links" aria-label="More"><a href="/payment-guide">Payment</a><a href="/how-to-order">How to order</a><a href="/track-order">Track</a><a href="/contact">Contact</a><a href="/ask">Ask us</a></nav></div>'+
+  '<div class="st-strip" id="fstrip" aria-label="Options"></div>'+
+  '<button type="button" class="st-plus" id="fplus" aria-label="Open prices">+</button>'+
+  /* index panel (left) */
+  '<div class="st-pn left" id="pn-index" hidden><div class="st-pn-in"><div class="st-pn-h"><b>INDEX · '+M.length+'</b><button type="button" data-pn="" aria-label="Close">×</button></div>'+
    '<div class="tabs" role="tablist"><button type="button" data-cf="" aria-selected="true">All</button>'+cats.map(function(c){return '<button type="button" data-cf="'+esc(c.id)+'" aria-selected="false">'+esc(c.name)+'</button>'}).join('')+'</div>'+
-   '<ol class="idx">'+M.map(function(m,i){return '<li data-cat="'+esc(m.catId)+'"><button type="button" data-m="'+esc(m.id)+'"><span>'+String(i+1).padStart(2,'0')+'.</span><b>'+esc(m.model)+'</b><em>'+(m.avail?pnum(m.from):'Ask us')+'</em></button></li>'}).join('')+'</ol></div></div>'+
-  /* grid panel */
-  '<div class="st-pn wide" id="pn-grid" hidden><div class="st-pn-in"><div class="st-pn-h"><b>ALL GADGETS</b><button type="button" data-pn="" aria-label="Close">×</button></div><div class="pgrid">'+M.map(pcard).join('')+'</div></div></div>'+
-  /* reviews panel */
+   '<ol class="idx">'+M.map(function(m,i){return '<li data-cat="'+esc(m.catId)+'"><button type="button" data-m="'+esc(m.id)+'"><span>'+String(i+1).padStart(2,'0')+'.</span><b>'+esc(m.model)+'</b><em>'+(m.avail?pnum(m.from):'Ask us')+'</em></button></li>'}).join('')+'</ol>'+
+   '<nav class="idx-links"><a href="/payment-guide">Payment guide</a><a href="/how-to-order">How to order</a><a href="/track-order">Track order</a><a href="/contact">Contact</a><a href="/ask">Ask us</a></nav></div></div>'+
+  /* reviews panel (right) */
   (revs.length?'<div class="st-pn" id="pn-rev" hidden><div class="st-pn-in"><div class="st-pn-h"><b>'+esc(S().reviewCount||'')+' REVIEWS · '+esc(S().reviewPct||'100')+'% RECOMMEND</b><button type="button" data-pn="" aria-label="Close">×</button></div>'+
    revs.map(function(r){return '<figure class="rq">'+(r.photo?'<img src="'+esc(r.photo)+'" alt="Photo posted by '+esc(r.n)+'" loading="lazy">':'')+'<blockquote>'+esc(r.t)+'</blockquote><figcaption>'+esc(r.n)+' · '+esc(r.d||'')+' · Facebook</figcaption></figure>'}).join('')+'<a class="lnk" href="'+esc(S().fb)+'" target="_blank" rel="noopener">See all on Facebook →</a></div></div>':'')+
  '</section>');
- var F=window.EPM&&EPM.field(document.getElementById('fd'),A,{render:function(m){return pic(m,true)},label:function(m){return esc(m.model)+'<em>'+(m.avail?pnum(m.from):'Ask us')+'</em>'},open:function(m,n){openReceipt(m,n)}});
- var st=document.querySelector('.st');
- function panel(k){['index','grid','rev'].forEach(function(x){var p=document.getElementById('pn-'+x);if(p)p.hidden=x!==k});st.querySelectorAll('.st-edge [data-pn]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.pn===k))});if(F)F.pause(!!k)}
- st.addEventListener('click',function(e){var b=e.target.closest('[data-pn]');if(b){var k=b.dataset.pn;var open=k&&document.getElementById('pn-'+k)&&document.getElementById('pn-'+k).hidden;panel(open?k:'');return}
-  var mm=e.target.closest('[data-m]');if(mm){var m=M.find(function(x){return x.id===mm.dataset.m});if(m){panel('');openReceipt(m,mm)}return}
+ var st=document.querySelector('.st'),cur=null,F=null;
+ function show(m){cur=m;var k=A.findIndex(function(x){return x.id===m.id});
+  document.getElementById('fno').textContent=no(m)+' / '+String(M.length).padStart(2,'0')+' · '+String(m.cat).toUpperCase();
+  document.getElementById('fname').textContent=m.model;
+  document.getElementById('fsub').textContent=(m.avail?'FROM '+php(m.from)+' · ':'')+m.variants.length+' OPTION'+(m.variants.length>1?'S':'')+(m.colorList.length?' · '+m.colorList.length+' COLORS':'');
+  document.getElementById('fstrip').innerHTML=m.variants.map(function(v,i){return '<button type="button" data-v="'+i+'"'+(v.off||!v.price?' disabled':'')+'><b>'+esc(v.label||'Standard')+'</b><span>'+(v.price&&!v.off?php(v.price):'Ask us')+'</span></button>'}).join('');
+  document.getElementById('pk').style.top=(A.length>1?k/(A.length-1)*100:0)+'%'}
+ function openM(m,el,vi){if(F)F.isolate(m.id);panel('');openReceipt(m,el,{v:vi,onClose:function(){if(F)F.isolate(null)}})}
+ if(window.EPM)F=EPM.field(document.getElementById('fd'),A,{render:function(m){return pic(m,true)},label:function(m){return esc(m.model)+'<em>'+(m.avail?pnum(m.from):'Ask us')+'</em>'},open:function(m,n){openM(m,n)},focus:function(m){show(m)}});
+ if(!cur&&A[0])show(A[0]);
+ function panel(k){['index','rev'].forEach(function(x){var p=document.getElementById('pn-'+x);if(p)p.hidden=x!==k});st.classList.toggle('pn-open',!!k);if(F)F.pause(!!k)}
+ st.addEventListener('click',function(e){var b=e.target.closest('[data-pn]');if(b){var k=b.dataset.pn,p=k&&document.getElementById('pn-'+k);panel(p&&p.hidden?k:'');return}
+  if(e.target.closest('#vw')){var g=F&&F.mode(document.getElementById('vw').getAttribute('aria-pressed')==='true'?'field':'grid');var on=g==='grid';var vw=document.getElementById('vw');vw.setAttribute('aria-pressed',String(on));vw.textContent=on?'Field':'Grid';st.classList.toggle('is-grid',on);return}
+  var mm=e.target.closest('[data-m]');if(mm){var m=M.find(function(x){return x.id===mm.dataset.m});if(m)openM(m,mm);return}
+  var sv=e.target.closest('#fstrip [data-v]');if(sv&&cur){openM(cur,sv,+sv.dataset.v);return}
+  if(e.target.closest('#fplus')&&cur){openM(cur,document.getElementById('fplus'));return}
   var cf=e.target.closest('[data-cf]');if(cf){cf.parentNode.querySelectorAll('[data-cf]').forEach(function(x){x.setAttribute('aria-selected',String(x===cf))});st.querySelectorAll('.idx li').forEach(function(li){li.hidden=!!cf.dataset.cf&&li.dataset.cat!==cf.dataset.cf})}});
- document.addEventListener('keydown',function(e){if(e.key==='Escape')panel('')})}
+ st.addEventListener('pointerover',function(e){var mm=e.target.closest('.idx [data-m]');if(mm&&F&&e.pointerType==='mouse')F.focus(mm.dataset.m)});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')panel('')});
+ /* QR code to this store (scan from a laptop to open on the phone) */
+ var q=document.createElement('script');q.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';q.async=true;q.onload=function(){try{var qr=qrcode(0,'M');qr.addData(location.origin+'/');qr.make();document.getElementById('qr').innerHTML=qr.createSvgTag({cellSize:2,margin:0,scalable:true})}catch(e){}};document.head.appendChild(q)}
 
 /* ---------- PAGE: gadgets ---------- */
 function pageGadgets(){var o=qs(),cat=o.cat||'all',q='';var cats=[];(DATA.priceList.categories||[]).forEach(function(c){if((c.items||[]).length)cats.push({id:c.id||c.name,name:c.name})});
