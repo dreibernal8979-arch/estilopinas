@@ -35,7 +35,7 @@ body{font-size:14px;line-height:1.5}
 .vsel button{min-height:38px!important;font-size:12.5px!important;padding:0 12px!important}
 
 /* ---- section separators ---- */
-main>section+section{border-top:1px solid rgba(43,43,43,.1)}
+main>section+section{border-top:1px solid rgba(28,13,45,.1)}
 main>section.cine+section{border-top:0}
 
 /* ================= phones: tablet-like layout ================= */

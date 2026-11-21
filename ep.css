@@ -4,7 +4,7 @@
 :root{
  --ink:#2B2B2B;--ink2:#3d4148;--blue:#556270;--blue2:#6f7c8b;--cream:#F3EEE6;--cream2:#EAE3D8;--white:#fff;
  --mute:#6E737B;--line:#E4DED3;--soft:var(--cream);--paper:#fff;
- --grad:linear-gradient(90deg,#ff3d8b,#8a5cff 50%,#3d7bff);
+ --grad:linear-gradient(90deg,#BCA3DC,#A57CC4 50%,#5E3481);
  --disp:"Bowlby One SC","Arial Black",system-ui,sans-serif;
  --sans:"Sora","Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
  --r:20px;--r-sm:14px;
@@ -57,8 +57,8 @@ body{background:var(--cream);color:var(--ink);font:400 15px/1.6 var(--sans);lett
 .rail2::-webkit-scrollbar{display:none}.rail2.drag{cursor:grabbing;scroll-snap-type:none}
 @media (max-width:600px){.rail2{grid-auto-columns:72%}}
 .pc2{scroll-snap-align:start;display:flex;flex-direction:column;text-decoration:none;color:inherit;padding:14px;transition:transform .2s ease,box-shadow .2s ease}
-.pc2:hover{transform:translateY(-3px);box-shadow:0 18px 30px -22px rgba(43,43,43,.45)}
-.pc2:focus-visible{outline:3px solid #8a5cff;outline-offset:2px}
+.pc2:hover{transform:translateY(-3px);box-shadow:0 18px 30px -22px rgba(28,13,45,.45)}
+.pc2:focus-visible{outline:3px solid #A57CC4;outline-offset:2px}
 .pc2 .ph{aspect-ratio:1;border-radius:var(--r-sm);background:var(--cream);display:grid;place-items:center;overflow:hidden;margin-bottom:12px}
 .pc2 .ph img{width:82%;height:82%;object-fit:contain;filter:drop-shadow(0 12px 16px rgba(0,0,0,.14));transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 .pc2:hover .ph img{transform:scale(1.04)}
@@ -164,7 +164,7 @@ body{background:var(--cream);color:var(--ink);font:400 15px/1.6 var(--sans);lett
 /* real reviews */
 .rvw{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,340px);gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 18px;scrollbar-width:thin;align-items:start}
 .rvw.drag{cursor:grabbing;scroll-snap-type:none;user-select:none}
-.rvc{margin:0;background:#fff;border-radius:22px;box-shadow:0 18px 34px -24px rgba(43,43,43,.45),0 0 0 1px rgba(43,43,43,.06);overflow:hidden;scroll-snap-align:start}
+.rvc{margin:0;background:#fff;border-radius:22px;box-shadow:0 18px 34px -24px rgba(28,13,45,.45),0 0 0 1px rgba(28,13,45,.06);overflow:hidden;scroll-snap-align:start}
 .rvc img{display:block;width:100%;aspect-ratio:1;object-fit:cover;pointer-events:none}
 .rvc figcaption{padding:16px 18px 18px}
 .rvh{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.35}.rvh .mu{color:var(--mute)}.rvh small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}

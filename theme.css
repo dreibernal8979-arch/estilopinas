@@ -1,0 +1,85 @@
+/* Estilo Pinas — "Alinsa × purple" theme (loaded last; re-skins only, no behavior changes).
+   Direction from the owner: blocky architectural display type (Alinsa) for headings only,
+   Montserrat regular for everything else (incl. prices), purple palette on cream:
+   wisteria · lavender · lilac · orchid · mauve · amethyst · plum · aubergine · violet · midnight purple. */
+
+/* Headings: "Alinsa" if installed/added later, then the self-hosted wide blocky stand-in. */
+@font-face{font-family:"EP Display";src:url(/fonts/EPDisplay.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Montserrat";src:url(/fonts/Montserrat-var.woff) format("woff");font-weight:100 900;font-style:normal;font-display:swap}
+
+:root{
+ --wisteria:#E8DDF3;--lavender:#D4C2EB;--lilac:#BCA3DC;--orchid:#A57CC4;--mauve:#8E5B8F;
+ --amethyst:#5E3481;--plum:#4A1F5E;--aubergine:#3A1A5C;--violet:#29154A;--midnight:#1C0D2D;
+ --ink:#1C0D2D;--ink2:#3A1A5C;--blue:#5E3481;--blue2:#8E5B8F;
+ --cream:#F5EEE3;--cream2:#EDE3F1;--paper:#FFFDF9;--white:#fff;
+ --mute:#6F6079;--line:#E3D7E3;--soft:var(--cream);
+ --grad:linear-gradient(90deg,#E8DDF3 0%,#BCA3DC 45%,#A57CC4 100%);
+ --disp:"Alinsa","EP Display","Archivo Black","Arial Black",system-ui,sans-serif;
+ --sans:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
+ --price:"Montserrat",system-ui,sans-serif;
+}
+html{background:var(--cream)}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);letter-spacing:0}
+::selection{background:var(--lavender);color:var(--midnight)}
+
+/* type: display only on headings, uppercase, tight */
+h1,h2,.disp,.cine h1,.qhi{font-family:var(--disp)!important;text-transform:uppercase;letter-spacing:-.01em!important;line-height:.98!important}
+h3,h4{font-family:var(--sans)!important;font-weight:600!important;letter-spacing:0}
+.eyebrow{color:var(--amethyst)!important;font-weight:500!important}
+.btn,button,.csel button,.vsel button,.tabbar a,nav a{font-family:var(--sans)!important;font-weight:500!important}
+/* prices: Montserrat, regular */
+.pp,.tw,.pd-price b,.kv b,.rcpt b,.tot b,.price-ex b,.fr-lb b,.sr-info b,[class*="price"] b{font-family:var(--price)!important;font-weight:400!important;letter-spacing:-.01em}
+footer .tot b{font:400 22px var(--price)!important}
+
+/* buttons */
+.btn{background:var(--midnight);border-color:var(--midnight);color:var(--cream)}
+.btn:hover{background:var(--amethyst);border-color:var(--amethyst)}
+.btn.ghost{background:transparent;color:var(--midnight);border-color:var(--midnight)}
+.btn.light{background:var(--wisteria)!important;color:var(--midnight)!important;border-color:var(--wisteria)!important}
+
+/* ---- color grading: hero = midnight purple with orchid/lilac light ---- */
+.cine{background:radial-gradient(90% 75% at 72% 40%,#4A2468 0%,#2A1548 50%,#1C0D2D 100%)!important;color:var(--cream)}
+.cine::before{background:radial-gradient(40% 36% at 76% 40%,rgba(188,163,220,.30),transparent 70%),radial-gradient(34% 30% at 60% 66%,rgba(165,124,196,.26),transparent 70%),radial-gradient(28% 28% at 90% 72%,rgba(232,221,243,.14),transparent 70%)!important}
+.cine h1 .acc,.cine h1 em,.cine .grad{background:var(--grad)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+.cine .btn{background:var(--wisteria);border-color:var(--wisteria);color:var(--midnight)}
+.cine .btn.ghost{background:transparent;color:var(--wisteria);border-color:rgba(232,221,243,.7)}
+.cine-trust,.cine-trust *{color:var(--lavender)!important}
+.h3-real img{filter:drop-shadow(0 40px 40px rgba(10,3,20,.6)) drop-shadow(0 0 70px rgba(188,163,220,.28))!important}
+.h3-shadow{background:radial-gradient(closest-side,rgba(8,2,16,.6),transparent)!important}
+
+/* dark blocks + footer */
+.tile.ink{background:linear-gradient(160deg,#3A1A5C,#1C0D2D)!important;border-color:transparent!important;color:var(--cream)}
+.foot{background:var(--midnight)!important;color:var(--lilac)!important}
+.foot a{color:var(--wisteria)!important}
+
+/* light tiles get a wisteria tint so sections read as one family */
+.tile.cream,.tile.soft{background:var(--cream2)!important}
+.tile{border-color:var(--line)}
+
+/* floating products: lavender light behind each unit */
+.pc2 .ph{background:radial-gradient(60% 55% at 50% 45%,rgba(212,194,235,.55),transparent 72%)!important}
+.pd-ph{background:radial-gradient(62% 55% at 50% 45%,rgba(212,194,235,.6),transparent 74%)!important}
+.sr-card .ph{background:radial-gradient(55% 50% at 50% 50%,rgba(212,194,235,.45),transparent 72%)!important}
+.fr-fl{background:radial-gradient(50% 46% at 50% 50%,rgba(212,194,235,.42),transparent 72%)}
+.gs{background:radial-gradient(closest-side,rgba(28,13,45,.34),transparent)!important}
+.fr-fl img,.sr-card .ph img,.pc2 .ph img{filter:drop-shadow(0 22px 20px rgba(28,13,45,.24))!important}
+
+/* chips, pills, choices */
+.csel button[aria-pressed="true"],.vsel button[aria-pressed="true"],.vsel button.on{border-color:var(--amethyst)!important;box-shadow:inset 0 0 0 1px var(--amethyst)!important;background:var(--wisteria)!important;color:var(--midnight)!important}
+.viewtog button[aria-pressed="true"],.viewtog .on{background:var(--midnight)!important;color:var(--cream)!important}
+
+/* reviews */
+.rvh .av{background:var(--amethyst)!important;color:var(--cream)!important}
+.rvc{box-shadow:0 18px 34px -24px rgba(28,13,45,.45),0 0 0 1px rgba(28,13,45,.06)!important}
+
+/* section separators in the purple family */
+main>section+section{border-top-color:rgba(94,52,129,.14)!important}
+
+/* phone header + tab bar */
+.tabbar{background:rgba(255,253,249,.94)!important;border-top:1px solid var(--line)!important}
+.tabbar a[aria-current="page"],.tabbar a.on{color:var(--amethyst)!important}
+
+/* readable labels on dark purple blocks */
+.cine .eyebrow,.tile.ink .eyebrow,.foot .eyebrow,.tile.ink small,.tile.ink .lbl2{color:var(--lilac)!important}
+.tile.ink p,.tile.ink span{color:rgba(245,238,227,.86)}
+@media (max-width:700px){.ct .tile p,.ct .tile a:not(.btn){font-size:12.5px!important;line-height:1.4}}
