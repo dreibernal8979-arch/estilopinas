@@ -53,10 +53,10 @@ function showroom(el,items,o){o=o||{};if(!el||!items.length)return null;var N=it
   if(RM){pos=target;vel=0}else{var k=140,c=22;vel+=((target-pos)*k-vel*c)*dt;pos+=vel*dt}
   layout();if(Math.abs(target-pos)<.0005&&Math.abs(vel)<.0005&&!down){pos=target;layout();raf=0;last=0;return}
   raf=vis?requestAnimationFrame(tick):0}
- function kick(){if(!raf&&vis)raf=requestAnimationFrame(tick)}
+ function kick(){if(!raf&&vis&&el.isConnected)raf=requestAnimationFrame(tick)}
  function go(i){target=Math.round(target)+i;kick();idle()}
  function goTo(k){var d=k-wrap(Math.round(target));if(d>N/2)d-=N;if(d<-N/2)d+=N;target=Math.round(target)+d;kick();idle()}
- function idle(){clearTimeout(idleT);if(RM||o.auto===false)return;idleT=setTimeout(function(){if(vis&&!down&&document.visibilityState==='visible'){target=Math.round(target)+1;kick()}idle()},5200)}
+ function idle(){clearTimeout(idleT);if(RM||o.auto===false||!el.isConnected)return;idleT=setTimeout(function(){if(vis&&!down&&document.visibilityState==='visible'){target=Math.round(target)+1;kick()}idle()},5200)}
  stage.addEventListener('pointerdown',function(e){if(e.button!==undefined&&e.button!==0)return;down={x:e.clientX,y:e.clientY,t0:target,moved:false,id:e.pointerId};idle()});
  stage.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-down.x;if(!down.moved&&Math.abs(dx)>6&&Math.abs(dx)>Math.abs(e.clientY-down.y)){down.moved=true;try{stage.setPointerCapture(down.id)}catch(_){}stage.classList.add('drag')}
   if(down.moved){target=down.t0-dx/Math.max(120,R*.9);kick()}});
@@ -137,5 +137,35 @@ function rail(el,items,o){o=o||{};if(!el||!items.length)return null;
  requestAnimationFrame(function(){tr.scrollLeft=(tr.scrollWidth-tr.clientWidth)/2;place();el.classList.add('ready')});
  return {shuffle:shuffle,order:function(){return order.slice()}}}
 
-window.EPM={hero:hero,showroom:showroom,rail:rail,reveal:reveal,tilt:tilt,tween:tween,flip:flip,RM:RM,LOW:LOW};
+/* ---------- depth field: real product photos floating in space; scroll / drag to fly through ----------
+   Every gadget sits at its own depth. The camera moves forward (auto-drift + wheel + drag), items wrap
+   to the back when they pass the camera, so the field never ends and the page never gets long. */
+function field(el,items,o){o=o||{};if(!el||!items.length)return null;
+ var n=Math.max(items.length*2,14),D=2600,NEAR=360,P=1000,list=[],seed=7;
+ function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
+ for(var i=0;i<n;i++){var m=items[i%items.length];list.push({m:m,x:((i*.7548776+.13)%1)-.5,y:((i*.5698403+.41)%1)-.5,z:((i*.6180339)%1)*D})}
+ el.innerHTML='<div class="fd-cam">'+list.map(function(t,i){return '<button type="button" class="fd-it" data-i="'+i+'" aria-label="'+esc(t.m.model)+'"><span class="fd-ph">'+o.render(t.m)+'</span><span class="fd-lb">'+(o.label?o.label(t.m):esc(t.m.model))+'</span></button>'}).join('')+'</div>';
+ var cam=el.firstChild,nodes=[].slice.call(cam.children),c=0,v=RM?0:22,drift=RM?0:22,raf=0,last=0,vis=true,W=0,H=0,hot=-1;
+ function size(){var r=el.getBoundingClientRect();W=r.width;H=r.height}
+ function place(){for(var i=0;i<list.length;i++){var t=list[i],d=((t.z-c)%D+D)%D,z=NEAR-d,k=P/(P-z),sx=t.x*W*(.55+.5*(d/D)),sy=t.y*H*.52+H*.04;
+   var a=d<160?d/160:d>D*.82?(D-d)/(D*.18):1;var nd=nodes[i];nd.style.transform='translate3d('+sx.toFixed(1)+'px,'+sy.toFixed(1)+'px,'+z.toFixed(1)+'px)'+(i===hot?' scale(1.08)':'');
+   nd.style.opacity=Math.max(0,Math.min(1,a)).toFixed(3);nd.style.zIndex=String(Math.round(5000-d));nd.style.filter=LOW?'':'blur('+(d>D*.55?((d/D-.55)*6).toFixed(2):0)+'px)';nd.style.pointerEvents=a>.35?'auto':'none'}}
+ function tick(ts){var dt=last?Math.min(.05,(ts-last)/1000):0;last=ts;v+=(drift-v)*Math.min(1,dt*1.6);c+=v*dt;place();raf=vis?requestAnimationFrame(tick):0}
+ function kick(){if(!raf&&vis&&el.isConnected){last=0;raf=requestAnimationFrame(tick)}}
+ el.addEventListener('wheel',function(e){if(o.wheel===false)return;e.preventDefault();v+=(Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY:e.deltaX)*(e.deltaMode?30:1)*1.4;v=Math.max(-2600,Math.min(2600,v));if(RM){c+=v*.25;v=0;place()}kick()},{passive:false});
+ var dn=null,moved=0;
+ el.addEventListener('pointerdown',function(e){dn={y:e.clientY,x:e.clientX,c:c,t:performance.now()};moved=0});
+ window.addEventListener('pointermove',function(e){if(!dn)return;var dy=dn.y-e.clientY,dx=dn.x-e.clientX,dd=Math.abs(dy)>Math.abs(dx)?dy:dx;if(Math.abs(dd)>6)moved=1;if(moved){c=dn.c+dd*3.2;v=0;place();kick()}});
+ window.addEventListener('pointerup',function(e){if(!dn)return;var dt=(performance.now()-dn.t)/1000,dy=dn.y-e.clientY;if(moved&&dt>0&&dt<.4)v=Math.max(-2600,Math.min(2600,dy*3.2/dt*.35));dn=null;setTimeout(function(){moved=0},0)});
+ el.addEventListener('click',function(e){var b=e.target.closest('.fd-it');if(!b||moved)return;o.open&&o.open(list[+b.dataset.i].m,b.querySelector('img')||b)});
+ el.addEventListener('pointerover',function(e){var b=e.target.closest('.fd-it');hot=b?+b.dataset.i:-1;el.classList.toggle('spot',!!b);nodes.forEach(function(x,i){x.classList.toggle('hot',i===hot)});if(RM)place()});
+ el.addEventListener('pointerleave',function(){hot=-1;el.classList.remove('spot');nodes.forEach(function(x){x.classList.remove('hot')});if(RM)place()});
+ el.addEventListener('keydown',function(e){if(e.key==='ArrowDown'||e.key==='ArrowRight'){v+=500;kick()}if(e.key==='ArrowUp'||e.key==='ArrowLeft'){v-=500;kick()}});
+ if('IntersectionObserver' in window)new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis)kick()}).observe(el);
+ document.addEventListener('visibilitychange',function(){vis=document.visibilityState==='visible';if(vis)kick()});
+ if(window.ResizeObserver)new ResizeObserver(function(){size();place()}).observe(el);else window.addEventListener('resize',function(){size();place()});
+ size();place();el.classList.add('ready');kick();
+ return {pause:function(p){drift=p||RM?0:22},focus:function(id){var k=list.findIndex(function(t){return t.m.id===id});if(k>-1){c=list[k].z-D*.18;v=0;place()}}}}
+
+window.EPM={hero:hero,showroom:showroom,rail:rail,field:field,reveal:reveal,tilt:tilt,tween:tween,flip:flip,RM:RM,LOW:LOW};
 })();

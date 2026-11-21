@@ -75,8 +75,8 @@ function bagLines(){var M=models();return bagGet().map(function(x){var m=M.find(
 function bagTotal(){return bagLines().reduce(function(a,l){return a+l.p*l.q},0)}
 function bagCount(pop){var n=bagLines().reduce(function(a,l){return a+l.q},0),b=document.getElementById('bagn');if(!b)return;b.textContent=n;b.classList.toggle('has',n>0);if(pop){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}}
 function bagAdd(m,v,fromEl,c){c=c||'';var b=bagGet(),f=b.find(function(x){return x.m===m.id&&x.v===v.label&&(x.c||'')===c});if(f)f.q=Math.min(5,(f.q||1)+1);else b.push({m:m.id,v:v.label,c:c,q:1});bagSet(b);
- var t=document.getElementById('bagbtn');if(fromEl&&t&&!(window.EPM&&EPM.RM)&&m.photo){var a=fromEl.getBoundingClientRect(),c=t.getBoundingClientRect(),fx=document.createElement('div');fx.className='addfx';fx.innerHTML='<img src="'+esc(m.photo)+'" alt="">';document.body.appendChild(fx);
-  fx.animate([{transform:'translate('+(a.left+a.width/2-27)+'px,'+(a.top+a.height/2-27)+'px) scale(1)'},{transform:'translate('+(c.left-7)+'px,'+(c.top-7)+'px) scale(.3)',opacity:.4}],{duration:650,easing:'cubic-bezier(.5,0,.2,1)'}).onfinish=function(){fx.remove();bagCount(true)}}else bagCount(true);
+ var t=document.getElementById('bagbtn');if(fromEl&&t&&!(window.EPM&&EPM.RM)&&m.photo){var a=fromEl.getBoundingClientRect(),tb=t.getBoundingClientRect(),fx=document.createElement('div');fx.className='addfx';fx.innerHTML='<img src="'+esc(m.photo)+'" alt="">';document.body.appendChild(fx);
+  fx.animate([{transform:'translate('+(a.left+a.width/2-27)+'px,'+(a.top+a.height/2-27)+'px) scale(1)'},{transform:'translate('+(tb.left-7)+'px,'+(tb.top-7)+'px) scale(.3)',opacity:.4}],{duration:650,easing:'cubic-bezier(.5,0,.2,1)'}).onfinish=function(){fx.remove();bagCount(true)}}else bagCount(true);
  toast('Added to bag: '+m.model+' '+v.label+(c?' · '+c:''))}
 function openBag(){var d=document.getElementById('drawer'),L=bagLines(),f=fee();
  document.getElementById('baglst').innerHTML=L.length?L.map(function(l,i){return '<div class="bi"><div class="ph">'+(l.m.photo?'<img src="'+esc(l.m.photo)+'" alt="">':'')+'</div><div><b>'+esc(l.m.model)+'</b><span>'+esc(l.t)+' · '+php(l.p)+'</span></div><div class="q"><button type="button" data-q="'+i+'" data-d="-1" aria-label="Less">−</button><span>'+l.q+'</span><button type="button" data-q="'+i+'" data-d="1" aria-label="More">+</button></div></div>'}).join(''):'<p class="empty">Your bag is empty.<br><a href="/gadgets">Browse gadgets</a></p>';
@@ -323,35 +323,65 @@ function reviewsHTML(){var s=S(),L=(s.reviews||[]).filter(function(r){return r&&
  return '<section class="wrap sec2" data-rv>'+head+'<div class="rvw" id="rvw">'+L.map(card).join('')+'</div></section>'}
 
 /* ---------- PAGE: home ---------- */
-function pageHome(){var M=models();var hero=M.find(function(m){return m.photo&&m.avail&&m.spec})||M[0];var f=fee();
- var cats=[];(DATA.priceList.categories||[]).forEach(function(c){var n=(c.items||[]).length;if(n)cats.push({id:c.id||c.name,name:c.name,n:n,icon:iconKey(c)})});
- var show=M.filter(function(m){return m.avail}).slice(0,10);
+/* ---------- receipt-style detail (store home) ---------- */
+function barcode(t){var h=0,out='',x=0;for(var i=0;i<String(t).length;i++)h=(h*33+String(t).charCodeAt(i))>>>0;for(var k=0;k<46;k++){h=(h*1103515245+12345)>>>0;var w=1+(h>>>28)%3;if(k%2===0)out+='<rect x="'+x+'" y="0" width="'+w+'" height="34"/>';x+=w+((h>>>24)%2)+1}return '<svg class="bc" viewBox="0 0 '+x+' 34" preserveAspectRatio="none" aria-hidden="true">'+out+'</svg>'}
+function openReceipt(m,fromEl){var M=models(),no=M.findIndex(function(x){return x.id===m.id})+1,f=fee(),sel=m.variants.findIndex(function(v){return !v.off&&v.price});if(sel<0)sel=0;var col=m.colorList[0]||'';
+ var old=document.getElementById('rcp');if(old)old.remove();
+ var d=document.createElement('div');d.id='rcp';d.className='rcp';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label',m.model);
+ d.innerHTML='<div class="rcp-bg" data-x></div><aside class="rcp-pn"><button class="rcp-x" type="button" data-x aria-label="Close">×</button>'+
+  '<div class="rcp-hd"><img src="/wordmark.svg" alt="Estilo Pinas" width="74" height="35"><p>STORE 001 · MABALACAT, PAMPANGA<br>ITEM '+String(no).padStart(2,'0')+' — '+esc(m.cat).toUpperCase()+'</p></div>'+
+  '<div class="rcp-ph">'+pic(m,true)+'<i class="dot d1">01</i><i class="dot d2">02</i>'+(m.colorList.length?'<i class="dot d3">03</i>':'')+'</div>'+
+  '<h2 class="rcp-t"><span>'+String(no).padStart(2,'0')+'.</span> '+esc(m.model)+'</h2>'+
+  '<div class="rcp-row"><b>01</b><div><small>DETAILS</small><p>'+esc(m.spec||'Brand new, sealed')+'</p></div></div>'+
+  '<div class="rcp-row"><b>02</b><div><small>STORAGE</small><div class="rcp-opts">'+m.variants.map(function(v,i){return '<button type="button" data-v="'+i+'"'+(v.off||!v.price?' disabled':'')+' aria-pressed="'+(i===sel)+'"><span>'+esc(v.label||'Standard')+'</span><em class="vp">'+(v.price&&!v.off?php(v.price):'Ask us')+'</em></button>'}).join('')+'</div></div></div>'+
+  (m.colorList.length?'<div class="rcp-row"><b>03</b><div><small>COLOR</small><div class="csel">'+m.colorList.map(function(c,i){return '<button type="button" data-c="'+esc(c)+'" aria-pressed="'+(i===0)+'">'+esc(c)+'</button>'}).join('')+'</div></div></div>':'')+
+  '<div class="rcp-sum"><div><span>SUBTOTAL · CASH</span><b id="r-cash"></b></div><div><span>CREDIT CARD (+'+f+'% TERMINAL FEE)</span><b id="r-card"></b></div><div class="tot"><span>TOTAL</span><b id="r-tot"></b></div></div>'+
+  '<div class="rcp-act"><button class="btn" type="button" data-add>Add to bag →</button><a class="btn ghost" id="r-ord" href="#">Order now</a><a class="btn ghost" id="r-ask" target="_blank" rel="noopener" href="#">Ask for stock</a></div>'+
+  barcode(m.id)+'<p class="rcp-ty">THANK YOU FOR LOOKING · BRAND NEW, SEALED · LEGIT SINCE 2014</p></aside>';
+ document.body.appendChild(d);document.documentElement.classList.add('noscroll');
+ function draw(){var v=m.variants[sel],pr=v?cprice(v,col):0;
+  d.querySelectorAll('.rcp-opts button').forEach(function(b,i){b.setAttribute('aria-pressed',String(i===sel));var vv=m.variants[i];b.querySelector('.vp').textContent=vv.price&&!vv.off?php(cprice(vv,col)):'Ask us'});
+  d.querySelector('#r-cash').textContent=pr?php(pr):'Ask us';d.querySelector('#r-card').textContent=pr?php(pr*(1+f/100)):'—';d.querySelector('#r-tot').textContent=pr?php(pr):'Ask us';
+  d.querySelector('#r-ord').href='/order?'+toQS({m:m.id,v:v?v.label:'',c:col,pay:'cash'});
+  d.querySelector('#r-ask').href=msgr('Hi Estilo Pinas! Is the '+m.model+' '+(v?v.label:'')+(col?' ('+col+')':'')+' available?'+(pr?' Cash price '+php(pr)+'.':''))}
+ function close(){d.classList.remove('on');document.documentElement.classList.remove('noscroll');setTimeout(function(){d.remove()},320);if(fromEl&&fromEl.focus)try{fromEl.focus()}catch(e){}}
+ d.addEventListener('click',function(e){if(e.target.closest('[data-x]')){close();return}
+  var b=e.target.closest('.rcp-opts button');if(b&&!b.disabled){sel=+b.dataset.v;draw();return}
+  var c=e.target.closest('.csel button');if(c){col=c.dataset.c;d.querySelectorAll('.csel button').forEach(function(x){x.setAttribute('aria-pressed',String(x===c))});draw();return}
+  if(e.target.closest('[data-add]')){var v=m.variants[sel];if(v&&v.price&&!v.off)bagAdd(m,v,d.querySelector('.rcp-ph'),col)}});
+ d.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+ draw();requestAnimationFrame(function(){d.classList.add('on');d.querySelector('.rcp-x').focus()})}
+
+/* ---------- PAGE: home = one-screen store (no long scrolling) ---------- */
+function pageHome(){var M=models(),f=fee();var A=M.filter(function(m){return m.photo});if(!A.length)A=M;
+ document.body.classList.add('store');
+ var cats=[];(DATA.priceList.categories||[]).forEach(function(c){var n=M.filter(function(m){return m.catId===(c.id||c.name)}).length;if(n)cats.push({id:c.id||c.name,name:c.name,n:n})});
+ var revs=(S().reviews||[]).filter(function(r){return r&&r.on!==false&&r.t});
  shell(
- '<section class="cine" aria-label="Welcome"><div class="cine-grid" aria-hidden="true"></div><div class="wrap cine-in"><div><img class="cine-logo" src="/wordmark-white.svg" alt="Estilo Pinas"><h1><span class="ln"><span>Your next</span></span><span class="ln"><span>gadget starts</span></span><span class="ln"><span class="acc">here.</span></span></h1>'+
-  '<p class="sub">Premium gadgets. Smart choices. Legit transactions. Personal assistance.</p><div class="acts"><a class="btn big" href="#showroom">Explore gadgets <span class="ar">→</span></a><a class="btn ghost big" href="/ask">Talk to our assistant</a></div>'+
-  '<div class="cine-trust"><span>Brand new, sealed</span><span>Legit since 2014</span><span>'+esc(payMethods().join(' · '))+'</span></div></div><div class="h3" id="h3"></div></div><a class="scrollcue" href="#showroom" aria-label="Scroll to showroom"><i></i>SCROLL</a></section>'+
- '<section class="wrap sec2" id="showroom"><div class="sh2"><div><p class="eyebrow">3D showroom</p><h2>Spin through the latest</h2><p>Drag, swipe, scroll or use the arrow keys. Tap the front gadget for details.</p></div><div class="viewtog" role="group" aria-label="View"><button type="button" data-view="3d" aria-pressed="true">3D</button><button type="button" data-view="grid" aria-pressed="false">Grid</button></div></div>'+
-  '<div class="sr" id="sr"></div><div class="pgrid" id="srgrid" hidden>'+M.map(pcard).join('')+'</div></section>'+
- '<section class="wrap sec2" id="floatsec" data-rv><div class="sh2"><div><p class="eyebrow">Floating lineup</p><h2>Every gadget, up close</h2><p>Drag or swipe to glide, hover to spotlight, or hit Shuffle. Tap any gadget for prices.</p></div></div><div class="fr" id="fr"></div></section>'+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">Gadget categories</p><h2>Shop by category</h2></div><a href="/gadgets">All gadgets →</a></div><div class="catg">'+cats.map(function(c,i){return '<a data-st data-tilt class="tile catt '+['ink','blue','cream'][i%3]+'" href="/gadgets?cat='+encodeURIComponent(c.id)+'"><div><h3>'+esc(c.name)+'</h3><p>'+c.n+' model'+(c.n>1?'s':'')+'</p></div>'+ICON[c.icon]+'</a>'}).join('')+'</div></section>'+
- '<section class="wrap sec2" data-rv><div data-st class="tile blue disc"><p class="eyebrow" style="color:#cfd6de">Product discovery</p><h3>Not sure what to get? Start with your budget.</h3><div class="chips2"><a href="/ask?budget=40000">Below ₱40,000</a><a href="/ask?budget=60000">₱40,000–₱60,000</a><a href="/ask?budget=90000">₱60,000–₱90,000</a><a href="/ask?budget=999999">Above ₱90,000</a></div></div></section>'+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">Why Estilo Pinas</p><h2>Presyo + tiwala + legit transaction</h2></div></div><div class="g3"><div data-st data-tilt class="tile it"><span class="n">01</span><h3>Brand new, sealed</h3><p>Every unit is factory sealed.</p></div><div data-st data-tilt class="tile it"><span class="n">02</span><h3>Legit since 2014</h3><p>A real store in Mabalacat, Pampanga you can visit by appointment.</p></div><div data-st data-tilt class="tile it"><span class="n">03</span><h3>Direct dealer prices</h3><p>We work with direct dealers so you get competitive prices.</p></div></div></section>'+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">Transparent pricing</p><h2>See the full cost first</h2><p>Same dealer price for cash and card. Card payments add a '+f+'% terminal fee on the swiped amount only.</p></div><a href="/prices">Price list →</a></div><div class="g2"><div data-st class="tile price-ex"><span class="lbl2">Example · ₱30,000 item</span><div class="row"><span>Cash</span><b>'+pnum(30000)+'</b></div><div class="row"><span>Credit card (+'+f+'%)</span><b>'+pnum(30000*(1+f/100))+'</b></div><div class="row"><span>Card, fee paid in cash</span><span><b>'+pnum(30000)+'</b> swipe + '+php(30000*f/100)+' cash</span></div></div>'+
-  '<div data-st class="tile ink it"><span class="n" style="color:#cfd6de">PAYMENT OPTIONS</span><h3>'+esc(payMethods().join(' · '))+'</h3><p>Pay all in cash, all on card, or split between the two. Some banks also offer credit-to-cash — ask your bank directly.</p><p style="margin-top:14px"><a class="btn light" href="/payment-guide">Open payment calculator <span class="ar">→</span></a></p></div></div></section>'+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">How to avail</p><h2>Six simple steps</h2></div><a href="'+esc(S().fb)+'" target="_blank" rel="noopener">Contact Estilo Pinas →</a></div>'+stepsHTML().replace(/<li>/g,'<li data-st>')+'</section>'+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">Delivery &amp; pickup</p><h2>Get it your way</h2></div></div><div class="g3">'+deliveryList().map(function(x,i){return '<div data-st class="tile it'+(i===0?' blue':'')+'"><h3>'+esc(x.t)+'</h3><p>'+esc(x.d)+'</p></div>'}).join('')+'</div></section>'+
- reviewsHTML()+
- '<section class="wrap sec2" data-rv><div class="sh2"><div><p class="eyebrow">FAQ</p><h2>Good to know</h2></div></div><div data-st>'+faqHTML()+'</div></section>'+
- '<section class="wrap sec2" data-rv><div data-st class="tile ink rev2"><div><p class="eyebrow" style="color:#cfd6de">Shopping assistant</p><h3>Ask us anything</h3><p>Tell us your budget and how you’ll use it — we’ll help you pick. Rodz can join anytime.</p></div><a class="btn light" href="/ask">Ask our assistant <span class="ar">→</span></a></div></section>'+
- '<section class="wrap sec2" data-rv style="padding-bottom:48px"><div class="sh2"><div><p class="eyebrow">Contact &amp; store</p><h2>Visit or message us</h2></div></div><div data-st>'+contactHTML()+'</div></section>');
- wireDrag(document.getElementById('rvw'));if(window.EPM){var pops=[],seen={};seen[hero&&hero.catId]=1;M.forEach(function(m){if(m.photo&&m.avail&&!seen[m.catId]){seen[m.catId]=1;pops.push(m)}});M.forEach(function(m){if(pops.length<3&&m.photo&&m.avail&&m!==hero&&pops.indexOf(m)<0&&m.catId===(hero&&hero.catId))pops.push(m)});
-  EPM.hero(document.getElementById('h3'),hero,pops);
-  var fl=M.filter(function(m){return m.photo});if(fl.length>2&&EPM.rail)EPM.rail(document.getElementById('fr'),fl,{render:function(m){return pic(m,true)},label:function(m){return esc(m.model)+'<b>'+(m.avail?pnum(m.from):'Ask us')+'</b>'},open:function(m,n){openDetail(m,n.querySelector('img')||n)}});else{var fs=document.getElementById('floatsec');if(fs)fs.remove()}
-  EPM.showroom(document.getElementById('sr'),show.length?show:M,{render:function(m){return '<div class="ph" style="--d:'+FD(m)+'s"><span class="fl">'+pic(m,true)+'</span><i class="gs"></i></div><p class="nm">'+esc(m.model)+'</p>'},
-   info:function(m){return '<h3>'+esc(m.model)+'</h3><p>'+esc(m.spec||m.variants.map(function(v){return v.label}).join(' · '))+'</p><div class="pp">'+(m.avail?'<small>from</small>'+pnum(m.from):'Message for availability')+'</div><div class="row"><button class="btn" type="button" data-open="'+esc(m.id)+'">View details</button><a class="btn ghost" href="/product/'+encodeURIComponent(m.id)+'">Full page</a></div>'},
-   open:function(m,node){openDetail(m,node)}})}
- document.getElementById('showroom').addEventListener('click',function(e){var b=e.target.closest('[data-open]');if(b){var m=models().find(function(x){return x.id===b.dataset.open});if(m)openDetail(m,document.querySelector('.sr-item.on'))}
-  var v=e.target.closest('[data-view]');if(v){var g=v.dataset.view==='grid';document.getElementById('sr').hidden=g;document.getElementById('srgrid').hidden=!g;document.querySelectorAll('[data-view]').forEach(function(x){x.setAttribute('aria-pressed',String(x===v))})}})}
+ '<section class="st" aria-label="Estilo Pinas store">'+
+  '<div class="st-field" id="fd" tabindex="0" aria-label="Gadgets floating in space. Scroll or drag to move through them, tap one for prices."></div>'+
+  '<div class="st-tl"><span>STORE 001 · MABALACAT</span><span>'+A.length+' GADGETS · BRAND NEW, SEALED</span></div>'+
+  '<h1 class="st-h">Your next gadget<br><span class="acc">starts here.</span></h1>'+
+  '<div class="st-edge" role="group" aria-label="Views"><button type="button" data-pn="index">Index</button><button type="button" data-pn="grid">Grid</button>'+(revs.length?'<button type="button" data-pn="rev">Reviews</button>':'')+'</div>'+
+  '<div class="st-bl"><span>SCROLL OR DRAG TO MOVE · TAP A GADGET</span><span>'+esc(payMethods().join(' · ').toUpperCase())+' · SAME DEALER PRICE</span></div>'+
+  '<nav class="st-br" aria-label="More"><a href="/payment-guide">Payment</a><a href="/how-to-order">How to order</a><a href="/track-order">Track</a><a href="/contact">Contact</a><a href="/ask">Ask us</a></nav>'+
+  /* index panel */
+  '<div class="st-pn" id="pn-index" hidden><div class="st-pn-in"><div class="st-pn-h"><b>INDEX</b><button type="button" data-pn="" aria-label="Close">×</button></div>'+
+   '<div class="tabs" role="tablist"><button type="button" data-cf="" aria-selected="true">All</button>'+cats.map(function(c){return '<button type="button" data-cf="'+esc(c.id)+'" aria-selected="false">'+esc(c.name)+'</button>'}).join('')+'</div>'+
+   '<ol class="idx">'+M.map(function(m,i){return '<li data-cat="'+esc(m.catId)+'"><button type="button" data-m="'+esc(m.id)+'"><span>'+String(i+1).padStart(2,'0')+'.</span><b>'+esc(m.model)+'</b><em>'+(m.avail?pnum(m.from):'Ask us')+'</em></button></li>'}).join('')+'</ol></div></div>'+
+  /* grid panel */
+  '<div class="st-pn wide" id="pn-grid" hidden><div class="st-pn-in"><div class="st-pn-h"><b>ALL GADGETS</b><button type="button" data-pn="" aria-label="Close">×</button></div><div class="pgrid">'+M.map(pcard).join('')+'</div></div></div>'+
+  /* reviews panel */
+  (revs.length?'<div class="st-pn" id="pn-rev" hidden><div class="st-pn-in"><div class="st-pn-h"><b>'+esc(S().reviewCount||'')+' REVIEWS · '+esc(S().reviewPct||'100')+'% RECOMMEND</b><button type="button" data-pn="" aria-label="Close">×</button></div>'+
+   revs.map(function(r){return '<figure class="rq">'+(r.photo?'<img src="'+esc(r.photo)+'" alt="Photo posted by '+esc(r.n)+'" loading="lazy">':'')+'<blockquote>'+esc(r.t)+'</blockquote><figcaption>'+esc(r.n)+' · '+esc(r.d||'')+' · Facebook</figcaption></figure>'}).join('')+'<a class="lnk" href="'+esc(S().fb)+'" target="_blank" rel="noopener">See all on Facebook →</a></div></div>':'')+
+ '</section>');
+ var F=window.EPM&&EPM.field(document.getElementById('fd'),A,{render:function(m){return pic(m,true)},label:function(m){return esc(m.model)+'<em>'+(m.avail?pnum(m.from):'Ask us')+'</em>'},open:function(m,n){openReceipt(m,n)}});
+ var st=document.querySelector('.st');
+ function panel(k){['index','grid','rev'].forEach(function(x){var p=document.getElementById('pn-'+x);if(p)p.hidden=x!==k});st.querySelectorAll('.st-edge [data-pn]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.pn===k))});if(F)F.pause(!!k)}
+ st.addEventListener('click',function(e){var b=e.target.closest('[data-pn]');if(b){var k=b.dataset.pn;var open=k&&document.getElementById('pn-'+k)&&document.getElementById('pn-'+k).hidden;panel(open?k:'');return}
+  var mm=e.target.closest('[data-m]');if(mm){var m=M.find(function(x){return x.id===mm.dataset.m});if(m){panel('');openReceipt(m,mm)}return}
+  var cf=e.target.closest('[data-cf]');if(cf){cf.parentNode.querySelectorAll('[data-cf]').forEach(function(x){x.setAttribute('aria-selected',String(x===cf))});st.querySelectorAll('.idx li').forEach(function(li){li.hidden=!!cf.dataset.cf&&li.dataset.cat!==cf.dataset.cf})}});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')panel('')})}
 
 /* ---------- PAGE: gadgets ---------- */
 function pageGadgets(){var o=qs(),cat=o.cat||'all',q='';var cats=[];(DATA.priceList.categories||[]).forEach(function(c){if((c.items||[]).length)cats.push({id:c.id||c.name,name:c.name})});
